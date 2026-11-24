@@ -1,0 +1,14 @@
+{
+  "name": "Learning Games · 學習遊戲",
+  "short_name": "Learning Games",
+  "description": "P4–P6 English interactive exam games with teacher reports and parent reports.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f7f3e8",
+  "theme_color": "#0aa06e",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
