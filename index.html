@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<meta name="site-build" content="v13-20261125-2015">
+<meta name="site-build" content="v19-20261125-2200">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0aa06e">
@@ -161,8 +161,8 @@ if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catc
 let audioCtx=null, musicOn=false, musicTimer=null;
 function ac(){ if(!audioCtx){try{audioCtx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}} if(audioCtx&&audioCtx.state==='suspended')audioCtx.resume(); return audioCtx; }
 function tone(freq,start,dur,type,vol){ type=type||'sine'; vol=vol==null?0.18:vol; const c=ac(); if(!c)return; const o=c.createOscillator(),g=c.createGain(); o.type=type; o.frequency.value=freq; const t=c.currentTime+start; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol,t+0.02); g.gain.exponentialRampToValueAtTime(0.0001,t+dur); o.connect(g); g.connect(c.destination); o.start(t); o.stop(t+dur+0.03); }
-const MELODY=[523,587,659,784,659,587,523,440,523,587,659,784,880,784,659,523];
-function startMusic(){ if(musicOn)return; musicOn=true; let i=0; const step=()=>{ if(!musicOn)return; tone(MELODY[i%MELODY.length],0,0.28,'triangle',0.06); i++; }; step(); musicTimer=setInterval(step,360); }
+
+const BTL_BPM=132, BTL_STEP=60/BTL_BPM/2;const BTL_BASS=[110,110,87.31,87.31,130.81,130.81,98,98,110,110,87.31,87.31,146.83,146.83,98,110];const BTL_LEAD=[440,440,523,587,659,587,523,440,698,659,587,523,587,659,784,659];function toneNoise(start,dur,vol,hp){const c=ac(); if(!c)return; const n=c.createBufferSource(), b=c.createBuffer(1,Math.max(1,Math.floor(c.sampleRate*dur)),c.sampleRate), d=b.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*(1-i/d.length); n.buffer=b; const g=c.createGain(); g.gain.value=vol; const f=c.createBiquadFilter(); f.type=hp?'highpass':'bandpass'; f.frequency.value=hp?6500:1800; n.connect(f); f.connect(g); g.connect(c.destination); n.start(c.currentTime+start); n.stop(c.currentTime+start+dur+0.02);}function startMusic(){ if(musicOn)return; musicOn=true; let s=0; const play=()=>{ if(!musicOn)return; const k=s%16; if(k%4===0){ tone(120,0,0.12,'sine',0.5); tone(55,0,0.2,'sine',0.35); } if(k%4===2){ toneNoise(0,0.08,0.1,true); } toneNoise(0,0.025,0.045,true); tone(BTL_BASS[k],0,0.22,'sawtooth',0.08); tone(BTL_BASS[k]/2,0,0.22,'square',0.05); tone(BTL_LEAD[k],0,0.22,'triangle',0.07); if(k===6||k===14){ tone(BTL_LEAD[k]*1.5,0,0.09,'sawtooth',0.035); } s++; }; play(); musicTimer=setInterval(play, BTL_STEP*1000); }
 function stopMusic(){ musicOn=false; if(musicTimer){clearInterval(musicTimer);musicTimer=null;} }
 function toggleMusic(){ ac(); if(musicOn){ stopMusic(); document.getElementById('musicBtn').textContent='🎵 音樂'; } else { startMusic(); document.getElementById('musicBtn').textContent='🔇 停音樂'; } }
 

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<meta name="site-build" content="v18-20261125-2120">
+<meta name="site-build" content="v20-20261125-2230">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0aa06e">
@@ -363,7 +363,7 @@ footer{text-align:center;color:var(--ink-soft);font-size:12px;margin-top:26px}
 .sw-notice-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#10b981,#118ab2);animation:swTeachBar 4s linear forwards}
 .sw-notice-tip{font-size:11px;color:#888}
 .sw-notice-btn{margin-top:10px;border:none;background:#0aa06e;color:#fff;font-weight:800;border-radius:14px;padding:10px 20px;cursor:pointer;font-size:15px}
-.gc{display:inline-block;width:13px;height:13px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffe680,#f5b301 65%,#c98a00);border:1px solid #b07d00;vertical-align:-2px;box-shadow:inset 0 1px 1px rgba(255,255,255,.8);margin:0 1px}</style>
+.gc{display:inline-block;width:13px;height:13px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffe680,#f5b301 65%,#c98a00);border:1px solid #b07d00;vertical-align:-2px;box-shadow:inset 0 1px 1px rgba(255,255,255,.8);margin:0 1px}.region{width:100%;text-align:center;color:#fff;font-weight:800;font-size:13px;padding:7px;border-radius:10px;margin:10px 0 4px;box-shadow:0 3px 8px rgba(0,0,0,.15)}</style>
 </head>
 <body>
 <header>
@@ -633,13 +633,32 @@ function sndCorrect(){ if(!soundOn)return; [523,659,784].forEach((f,i)=>tone(f,i
 function sndWrong(){ if(!soundOn)return; tone(220,0,0.16,'sawtooth',0.07); tone(180,0.12,0.18,'sawtooth',0.07); }
 function sndFanfare(){ if(!soundOn)return; [523,659,784,1047,784,1047].forEach((f,i)=>tone(f,i*0.12,0.22,'triangle',0.2)); }
 function sndWin(){ if(!soundOn)return; [523,587,659,784,1047,1319].forEach((f,i)=>tone(f,i*0.1,0.25,'sine',0.2)); }
-/* 輕快背景音樂（循環） */
-const MELODY=[523,587,659,784,659,587,523,440,523,587,659,784,880,784,659,523];
+/* 冒險／戰鬥緊張背景音樂（循環） */
+const BTL_BPM=132, BTL_STEP=60/BTL_BPM/2;
+const BTL_BASS=[110,110,87.31,87.31,130.81,130.81,98,98,110,110,87.31,87.31,146.83,146.83,98,110];
+const BTL_LEAD=[440,440,523,587,659,587,523,440,698,659,587,523,587,659,784,659];
+function toneNoise(start,dur,vol,hp){
+  const c=ac(); if(!c)return;
+  const n=c.createBufferSource(), b=c.createBuffer(1,Math.max(1,Math.floor(c.sampleRate*dur)),c.sampleRate), d=b.getChannelData(0);
+  for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*(1-i/d.length);
+  n.buffer=b; const g=c.createGain(); g.gain.value=vol; const f=c.createBiquadFilter(); f.type=hp?'highpass':'bandpass'; f.frequency.value=hp?6500:1800;
+  n.connect(f); f.connect(g); g.connect(c.destination); n.start(c.currentTime+start); n.stop(c.currentTime+start+dur+0.02);
+}
 function startMusic(){
   if(musicOn)return; musicOn=true;
-  let i=0;
-  const step=()=>{ if(!musicOn)return; tone(MELODY[i%MELODY.length],0,0.28,'triangle',0.06); i++; };
-  step(); musicTimer=setInterval(step,360);
+  let s=0;
+  const play=()=>{
+    if(!musicOn)return;
+    const k=s%16;
+    if(k%4===0){ tone(120,0,0.12,'sine',0.5); tone(55,0,0.2,'sine',0.35); }
+    if(k%4===2){ toneNoise(0,0.08,0.1,true); }
+    toneNoise(0,0.025,0.045,true);
+    tone(BTL_BASS[k],0,0.22,'sawtooth',0.08); tone(BTL_BASS[k]/2,0,0.22,'square',0.05);
+    tone(BTL_LEAD[k],0,0.22,'triangle',0.07);
+    if(k===6||k===14){ tone(BTL_LEAD[k]*1.5,0,0.09,'sawtooth',0.035); }
+    s++;
+  };
+  play(); musicTimer=setInterval(play, BTL_STEP*1000);
 }
 function stopMusic(){ musicOn=false; if(musicTimer){clearInterval(musicTimer);musicTimer=null;} }
 function toggleSound(){
@@ -960,8 +979,11 @@ function starStr(s){ s=s||0; return '⭐'.repeat(s)+'☆'.repeat(3-s); }
 function renderPath(){
   const wrap=document.getElementById('pathWrap');
   const me=getMe();
+  const REGIONS=[{e:'🌊',n:'海之區',c:'#0ea5e9'},{e:'🌲',n:'森之區',c:'#16a34a'},{e:'🏰',n:'城堡區',c:'#7c3aed'}];
+  const _N=LEVELS.length, _b1=Math.ceil(_N/3), _b2=Math.ceil(_N*2/3);
   let html='<div class="path-line"></div>';
   LEVELS.forEach((lv,i)=>{
+    if(i===0||i===_b1||i===_b2){ const _ri=i===0?0:(i===_b1?1:2); const _r=REGIONS[_ri]; html+='<div class="region" style="background:'+_r.c+'">'+_r.e+' '+_r.n+'</div>'; }
     const locked=!levelUnlocked(i);
     const rec=(me.L&&me.L[lv.id])||null;
     const stars=rec?rec.s:0;
