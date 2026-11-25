@@ -1465,9 +1465,9 @@ function markWrong(advance,msg){
   if(n<2){ L.hinted[L.si]=n+1; showFb('💡 提示 '+(n+1)+'：'+stepHint(step,n+1),'no'); return; }
   recordWrong(step);
   L.hearts--; renderHearts();
-  showFb('❌ 試咗 2 次提示仲未啱，留返下次再做（已放入錯題庫）。','no');
+  showFb('❌ 試咗 2 次提示仲未啱，睇 AI 小老師教路！','no');
   if(L.hearts<=0){ setTimeout(()=>showTeachNote(),700); return; }
-  autoNext();
+  setTimeout(()=>{ if(typeof swTeachAnim==='function') swTeachAnim(step); else autoNext(); },700);
 }
 function autoNext(){ clearTimeout(autoTimer); autoTimer=setTimeout(()=>{ nextActivity(); },750); }
 function nextActivity(){ clearTimeout(autoTimer); if(!L)return; if(L.softRetry===L.si)L.softRetry=-1; if(L.si+1>=L.steps.length){ finishLesson(); } else { L.si++; renderStep(); } }
@@ -1540,7 +1540,7 @@ function mcqPick(j){
   recordWrong(step);
   L.hearts--; renderHearts();
   showFb('❌ 試咗 2 次提示仲未啱，留返下次再做（已放入錯題庫）。','no');
-  if(L.hearts<=0){ setTimeout(()=>showTeachNote(),700); } else { autoNext(); }
+  if(L.hearts<=0){ setTimeout(()=>showTeachNote(),700); } else { setTimeout(()=>{ if(typeof swTeachAnim==='function') swTeachAnim(step); else autoNext(); },700); }
   setTimeout(()=>{L.busy=false;},400);
 }
 
@@ -2293,5 +2293,77 @@ function buyTool(id){
 }
 
 </script>
+
+<style>
+@keyframes swRun{0%{left:-70px;transform:translateY(0) rotate(-8deg)}50%{transform:translateY(-16px) rotate(0)}100%{left:112%;transform:translateY(0) rotate(8deg)}}
+.sw-runner{position:fixed;left:-70px;top:44%;font-size:42px;z-index:9995;pointer-events:none;animation:swRun .85s ease-in forwards;filter:drop-shadow(0 6px 12px rgba(0,0,0,.22))}
+.sw-teach{position:fixed;inset:0;z-index:12000;background:rgba(15,23,42,.8);display:grid;place-items:center;padding:16px;backdrop-filter:blur(3px)}
+.sw-teach-card{background:#fff;border-radius:22px;max-width:520px;width:100%;padding:20px;text-align:center;animation:swPop .3s;box-shadow:0 20px 50px rgba(0,0,0,.4)}
+.sw-teach-chars{position:relative;height:64px}
+.sw-teach-fox{font-size:46px;display:inline-block;animation:swMascot .9s infinite}
+.sw-teach-bubble{position:absolute;left:56%;top:0;font-size:13px;background:#eaf7f0;color:#059669;border-radius:14px;padding:6px 10px;font-weight:800;animation:swPop .4s}
+.sw-teach-title{font-weight:800;font-size:17px;margin:6px 0 10px;color:#2b2d42}
+.sw-teach-rule{text-align:left;font-size:14px;line-height:1.6;background:#f7f3e8;border-radius:14px;padding:12px;margin-bottom:10px}
+.sw-teach-ans{font-size:15px;color:#059669;font-weight:800;margin:8px 0 12px}
+.sw-teach-bar{height:10px;background:#ece7da;border-radius:999px;overflow:hidden;margin:8px 0}
+.sw-teach-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#10b981,#118ab2);animation:swTeachBar 10s linear forwards}
+@keyframes swTeachBar{to{width:100%}}
+.sw-teach-tip{font-size:11px;color:#888}
+.sw-teach-btn{margin-top:12px;border:none;background:#0aa06e;color:#fff;font-weight:800;border-radius:14px;padding:11px 20px;cursor:pointer;font-size:15px}
+</style>
+<script>
+var _swRunLast=0;
+function swRunScene(){
+  try{
+    var now=Date.now(); if(now-_swRunLast<350) return; _swRunLast=now;
+    var e=document.createElement('div'); e.className='sw-runner';
+    var av='🦊'; try{ av=(typeof getMe==='function'&&getMe().avatar)||'🦊'; }catch(x){}
+    e.textContent=av; document.body.appendChild(e);
+    try{ if(typeof tone==='function'){ tone(880,0,0.06,'triangle',0.05); tone(1175,0.08,0.06,'triangle',0.04); } }catch(x){}
+    setTimeout(function(){ if(e.parentNode) e.parentNode.removeChild(e); }, 950);
+  }catch(x){}
+}
+function swTeachAnim(step){
+  try{
+    var rule='';
+    try{
+      var lv=(typeof L!=='undefined'&&L&&L.id&&L.id!=='final')?LEVELS.filter(function(x){return x.id===L.id;})[0]:null;
+      var ia=lv?lv.acts.filter(function(a){return a.type==='info';})[0]:null;
+      rule=ia?ia.html:'';
+    }catch(x){}
+    var ans='';
+    try{
+      if(step.type==='mcq') ans=step.q.opts[step.q.ans];
+      else if(step.type==='fill') ans=step.q.ans;
+      else if(step.type==='spell'||step.type==='typeword') ans=step.word;
+      else if(step.type==='match') ans='逐對配：左邊同右邊意思一樣';
+      else if(step.type==='sort'||step.type==='order') ans='跟規則分類／排序';
+    }catch(x){}
+    if(document.querySelector('.sw-teach')) return;
+    var d=document.createElement('div'); d.className='sw-teach';
+    d.innerHTML='<div class="sw-teach-card"><div class="sw-teach-chars"><span class="sw-teach-fox">🦊</span><span class="sw-teach-bubble">我教你！</span></div><div class="sw-teach-title">🤖 AI 小老師（10 秒）</div><div class="sw-teach-rule">'+(rule||'睇清楚題目，諗吓文法規則。')+'</div>'+(ans?'<div class="sw-teach-ans">✅ 正確答案：<b>'+String(ans).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</b></div>':'')+'<div class="sw-teach-bar"><i></i></div><div class="sw-teach-tip">10 秒後自動繼續…</div><button class="sw-teach-btn" onclick="swTeachClose()">我明白了 ➜</button></div>';
+    document.body.appendChild(d);
+    d._t=setTimeout(function(){ swTeachClose(); }, 10000);
+    window._swTeach=d;
+  }catch(x){ try{ autoNext(); }catch(y){} }
+}
+function swTeachClose(){
+  var d=window._swTeach; if(!d) return;
+  try{ clearTimeout(d._t); }catch(x){}
+  try{ if(d.parentNode) d.parentNode.removeChild(d); }catch(x){}
+  window._swTeach=null;
+  try{ autoNext(); }catch(x){}
+}
+(function(){
+  try{
+    var _rs=window.renderStep;
+    if(typeof _rs==='function' && !_rs._swWrapped){
+      window.renderStep=function(){ _rs.apply(this,arguments); try{ swRunScene(); }catch(e){} };
+      window.renderStep._swWrapped=true;
+    }
+  }catch(e){}
+})();
+</script>
+
 </body>
 </html>
