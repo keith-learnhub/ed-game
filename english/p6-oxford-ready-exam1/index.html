@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<meta name="site-build" content="v20-20261125-2230">
+<meta name="site-build" content="v21-20261125-2300">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0aa06e">
@@ -363,7 +363,7 @@ footer{text-align:center;color:var(--ink-soft);font-size:12px;margin-top:26px}
 .sw-notice-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#10b981,#118ab2);animation:swTeachBar 4s linear forwards}
 .sw-notice-tip{font-size:11px;color:#888}
 .sw-notice-btn{margin-top:10px;border:none;background:#0aa06e;color:#fff;font-weight:800;border-radius:14px;padding:10px 20px;cursor:pointer;font-size:15px}
-.gc{display:inline-block;width:13px;height:13px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffe680,#f5b301 65%,#c98a00);border:1px solid #b07d00;vertical-align:-2px;box-shadow:inset 0 1px 1px rgba(255,255,255,.8);margin:0 1px}.region{width:100%;text-align:center;color:#fff;font-weight:800;font-size:13px;padding:7px;border-radius:10px;margin:10px 0 4px;box-shadow:0 3px 8px rgba(0,0,0,.15)}</style>
+.gc{display:inline-block;width:13px;height:13px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffe680,#f5b301 65%,#c98a00);border:1px solid #b07d00;vertical-align:-2px;box-shadow:inset 0 1px 1px rgba(255,255,255,.8);margin:0 1px}.region{width:100%;text-align:center;color:#fff;font-weight:800;font-size:13px;padding:7px;border-radius:10px;margin:10px 0 4px;box-shadow:0 3px 8px rgba(0,0,0,.15)}.sw-mini-area{position:relative;width:min(92vw,340px);height:420px;border-radius:16px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.3);touch-action:none}</style>
 </head>
 <body>
 <header>
@@ -893,6 +893,8 @@ function recLevel(levelId,pct,starsParam){
   const bestStars=prev?Math.max(prev.s||0,lvStars):lvStars;
   me.L[levelId]={s:bestStars,p:best,t:new Date().toISOString()};
   if(!prev){ let gain=levelId==='final'?100:(10+bestStars*10); if(me.boost2x){ gain*=2; me.boost2x=false; toast('💰 雙倍金幣！+'+gain); } me.coins=(me.coins||0)+gain; bumpMissions(levelId==='final'?2:1, gain); }
+  if(levelId!=='final'){ if(!prev){ me.pieces=(me.pieces||0)+1; if(me.pieces%5===0){ me.coins=(me.coins||0)+30; toast('⭐ 集齊 '+me.pieces+' 個屎屎人！製作星星 +30 金幣'); } } const _li=LEVELS.findIndex(l=>l.id===levelId); if(prev && bestStars>=3 && _li>=0 && (_li+1)%3===0 && !(prev.hidden)){ me.L[levelId].hidden=true; me.coins=(me.coins||0)+20; toast('🎁 搵到隱藏星星！+20 金幣'); } }
+  if(levelId!=='final'){ if(!prev){ me.pieces=(me.pieces||0)+1; if(me.pieces%5===0){ me.coins=(me.coins||0)+30; toast('⭐ 集齊 '+me.pieces+' 個屎屎人！製作星星 +30 金幣'); } } const _li=LEVELS.findIndex(l=>l.id===levelId); if(prev && bestStars>=3 && _li>=0 && (_li+1)%3===0 && !(prev.hidden)){ me.L[levelId].hidden=true; me.coins=(me.coins||0)+20; toast('🎁 搵到隱藏星星！+20 金幣'); } }
   /* 重新彙總 */
   let stars=0,xp=0,done=0;
   Object.keys(me.L).forEach(k=>{ if(k!=='final'){ stars+=me.L[k].s; xp+=me.L[k].p>=50? (10+me.L[k].s*10):5; if(me.L[k].s>0)done++; } });
@@ -2399,63 +2401,96 @@ function buyTool(id){
       '🎉 恭喜！你打敗咗屎王，成為屎屎王國英雄！'
     ];
     var idx=Math.min(ch.length-1, Math.floor(done/Math.max(1,total)*ch.length));
-    el.innerHTML='<img src="../../assets/wusir.jpg" style="width:26px;height:26px;border-radius:50%;vertical-align:middle;margin-right:6px;object-fit:cover;border:2px solid #f59e0b">📖 '+ch[idx]+'（進度 '+done+'/'+total+'）';
+    var _pc=(me&&me.pieces)||0; var _craft=_pc>=total?'　⭐ 集齊屎屎人！王國回復光明！':'　💩 屎屎人：'+_pc+'/'+total; el.innerHTML='<img src="../../assets/wusir.jpg" style="width:26px;height:26px;border-radius:50%;vertical-align:middle;margin-right:6px;object-fit:cover;border:2px solid #f59e0b">📖 '+ch[idx]+_craft;
   }
   window.swStory=swStory;
 
   /* ---------- 過關小遊戲（馬里奧式跑跳） ---------- */
-  window.swMiniGame=function(){
-    if(document.querySelector('.sw-mini')) return;
-    var ov=document.createElement('div'); ov.className='sw-mini';
-    ov.innerHTML='<div class="sw-mini-title">⭐ 星島小遊戲：金幣衝刺！</div><div class="sw-mini-sub">撳畫面／空白鍵跳起：食金幣 <i class="gc"></i>、食星鑽 💎 回血、避岩石 🪨</div><canvas id="swCanvas" width="360" height="480"></canvas><button class="sw-mini-btn" onclick="swMiniClose()">跳過 ➜</button>';
-    document.body.appendChild(ov);
-    var cv=ov.querySelector('#swCanvas'); if(!cv) return;
-    var ctx=cv.getContext('2d'); var W=cv.width,H=cv.height,ground=H-70;
-    var player={x:60,y:ground-40,w:34,h:40,vy:0,onGround:true};
-    var obstacles=[],coins=[],score=0,hearts=3,running=true,last=performance.now(),spawnT=0,elapsed=0;
-    function jump(){ if(player.onGround){ player.vy=-12; player.onGround=false; try{ tone(660,0,0.08,'square',0.06); }catch(e){} } }
-    function tap(e){ if(e) e.preventDefault(); jump(); }
-    cv.addEventListener('pointerdown',tap);
-    var keyH=function(e){ if(e.code==='Space'||e.key===' '){ e.preventDefault(); jump(); } };
-    document.addEventListener('keydown',keyH);
-    function spawn(){ var r=Math.random(); if(r<0.62) obstacles.push({x:W,y:ground-30,w:26,h:30}); else if(r<0.92) coins.push({x:W,y:ground-90-Math.random()*60,r:12,t:'c'}); else coins.push({x:W,y:ground-90-Math.random()*40,r:14,t:'m'}); }
-    function draw(){
-      var g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#7dd3fc'); g.addColorStop(1,'#bae6fd'); ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
-      ctx.fillStyle='#22c55e'; ctx.fillRect(0,ground,W,H-ground); ctx.fillStyle='#16a34a'; ctx.fillRect(0,ground,W,8);
-      ctx.font='26px serif'; ctx.textAlign='center'; ctx.fillText('☁️',80,80); ctx.fillText('☁️',250,120);
-      ctx.font='34px serif'; ctx.fillText('🦊',player.x+17,player.y+34);
-      ctx.font='30px serif'; obstacles.forEach(function(o){ ctx.fillText('🪨',o.x+13,o.y+28); });
-      ctx.font='26px serif'; coins.forEach(function(c){ if(c.r>0){ if(c.t==='m'){ ctx.font='26px serif'; ctx.fillText('💎',c.x,c.y); } else { ctx.beginPath(); ctx.arc(c.x,c.y-8,8,0,7); ctx.fillStyle='#f5b301'; ctx.fill(); ctx.strokeStyle='#b07d00'; ctx.lineWidth=2; ctx.stroke(); } } });
-      ctx.fillStyle='#0f172a'; ctx.font='bold 15px sans-serif'; ctx.textAlign='left';
-      ctx.beginPath(); ctx.arc(16,22,8,0,7); ctx.fillStyle='#f5b301'; ctx.fill(); ctx.strokeStyle='#b07d00'; ctx.lineWidth=2; ctx.stroke(); ctx.fillText(score+'   ❤️ '+hearts+'   ⏱ '+Math.floor(elapsed/1000)+'s',29,27);
-    }
-    function loop(now){
-      if(!running) return;
-      var dt=Math.min(32, now-last); last=now; elapsed+=dt;
-      player.vy+=0.62; player.y+=player.vy;
-      if(player.y>=ground-40){ player.y=ground-40; player.vy=0; player.onGround=true; }
-      spawnT+=dt; if(spawnT>900){ spawnT=0; spawn(); }
-      var sp=0.34*dt;
-      obstacles.forEach(function(o){ o.x-=sp; }); coins.forEach(function(c){ c.x-=sp; });
-      obstacles.forEach(function(o){ if(o.x<player.x+player.w && o.x+o.w>player.x && player.y+40>o.y && player.y<o.y+o.h){ hearts--; o.x=-999; try{ tone(180,0,0.18,'sawtooth',0.07); }catch(e){} } });
-      coins.forEach(function(c){ if(c.r>0 && Math.abs(c.x-(player.x+17))<30 && Math.abs(c.y-(player.y+20))<42){ c.r=0; if(c.t==='m'){ hearts=Math.min(3,hearts+1); try{ tone(1500,0,0.1,'triangle',0.08); }catch(e){} } else { score++; try{ tone(1200,0,0.08,'square',0.06); }catch(e){} } } });
-      obstacles=obstacles.filter(function(o){ return o.x>-60; });
-      coins=coins.filter(function(c){ return c.x>-30 && c.r>0; });
-      draw();
-      if(hearts<=0 || elapsed>=25000){ running=false; swMiniEnd(ov,score); return; }
-      requestAnimationFrame(loop);
-    }
-    requestAnimationFrame(loop);
-  };
-  function swMiniEnd(ov,score){
-    ov.innerHTML='<div class="sw-mini-title">🏁 完成！</div><div class="sw-mini-sub">你收集咗 '+score+' 個金幣</div><button class="sw-mini-btn" onclick="swMiniClose('+score+')">攞獎勵 ➜</button>';
-    window._swScore=score;
+  
+window._swScore=0;
+function _swMiniOverlay(title,sub,bg){
+  var ov=document.createElement('div'); ov.className='sw-mini';
+  ov.innerHTML='<div class="sw-mini-title">'+title+'</div><div class="sw-mini-sub">'+sub+'</div><div class="sw-mini-area" style="background:'+bg+'"></div><button class="sw-mini-btn" onclick="swMiniClose()">跳過 ➜</button>';
+  document.body.appendChild(ov);
+  return {ov:ov, area:ov.querySelector('.sw-mini-area')};
+}
+window.swMiniGame=function(){
+  if(document.querySelector('.sw-mini')) return;
+  var region=2;
+  try{
+    if(typeof L!=='undefined'&&L&&L.id==='final'){ region=2; }
+    else { var lv=LEVELS.filter(function(x){return x.id===L.id;})[0]; if(lv){ var idx=LEVELS.indexOf(lv); var n=LEVELS.length; var b1=Math.ceil(n/3), b2=Math.ceil(n*2/3); region=idx<b1?0:(idx<b2?1:2); } }
+  }catch(e){}
+  if(region===0) swMiniFish(); else if(region===1) swMiniFruit(); else swMiniBoss();
+};
+function _miniTicker(t, end, hearts, score, cb){
+  var chk=setInterval(function(){ if(Date.now()>=end){ clearInterval(chk); cb(score); } else if(hearts()<=0){ clearInterval(chk); cb(score); } },400);
+  t._ticker=chk;
+}
+function _miniScore(t, score, hearts){
+  var s=t.ov.querySelector('.sw-mini-sub');
+  if(s) s.textContent='得分 '+score+'　❤️ '+hearts;
+}
+function swMiniFish(){
+  var t=_swMiniOverlay('🌊 海之區：撈魚大賽','撳魚仔加分，避開八爪魚！','#0284c7');
+  var score=0, hearts=3, running=true, end=Date.now()+12000;
+  function spawn(){
+    if(!running) return;
+    var good=Math.random()<0.7;
+    var e=document.createElement('div');
+    e.style.cssText='position:absolute;font-size:34px;left:-50px;top:'+(8+Math.random()*72)+'%;cursor:pointer';
+    e.textContent=good?['🐟','🐠','🦐'][Math.floor(Math.random()*3)]:['🐙','🦈'][Math.floor(Math.random()*2)];
+    t.area.appendChild(e);
+    var x=-50;
+    var iv=setInterval(function(){ x+=4; e.style.left=x+'px'; if(x>(t.area.clientWidth||340)){ clearInterval(iv); e.remove(); } },30);
+    e.onclick=function(){ if(!running)return; clearInterval(iv); e.remove(); if(good){ score++; try{tone(1200,0,0.08,'square',0.06);}catch(x){} } else { hearts--; try{tone(180,0,0.18,'sawtooth',0.07);}catch(x){} } _miniScore(t,score,hearts); };
+    setTimeout(spawn, 480+Math.random()*400);
   }
-  window.swMiniClose=function(score){
-    score=(typeof score==='number')?score:(window._swScore||0);
-    var ov=document.querySelector('.sw-mini'); if(ov) ov.parentNode.removeChild(ov);
-    if(score>0){ try{ var me=getMe(); me.coins=(me.coins||0)+score; saveMe(me); toast('🎁 小遊戲獎勵 +'+score+' 金幣'); }catch(e){} }
-  };
+  spawn(); _miniScore(t,0,3); _miniTicker(t,end,function(){return hearts;},score,function(s){ running=false; swMiniEnd(t.ov,s); });
+}
+function swMiniFruit(){
+  var t=_swMiniOverlay('🌲 森之區：摘果大會','撳水果加分，避開炸彈！','#16a34a');
+  var score=0, hearts=3, running=true, end=Date.now()+12000;
+  function spawn(){
+    if(!running) return;
+    var good=Math.random()<0.75;
+    var e=document.createElement('div');
+    e.style.cssText='position:absolute;font-size:32px;left:'+(4+Math.random()*78)+'%;top:-40px;cursor:pointer';
+    e.textContent=good?['🍎','🍌','🍇','🍓'][Math.floor(Math.random()*4)]:'💣';
+    t.area.appendChild(e);
+    var y=-40;
+    var iv=setInterval(function(){ y+=4; e.style.top=y+'px'; if(y>(t.area.clientHeight||420)){ clearInterval(iv); e.remove(); } },30);
+    e.onclick=function(){ if(!running)return; clearInterval(iv); e.remove(); if(good){ score++; try{tone(1200,0,0.08,'square',0.06);}catch(x){} } else { hearts--; try{tone(180,0,0.18,'sawtooth',0.07);}catch(x){} } _miniScore(t,score,hearts); };
+    setTimeout(spawn, 420+Math.random()*350);
+  }
+  spawn(); _miniScore(t,0,3); _miniTicker(t,end,function(){return hearts;},score,function(s){ running=false; swMiniEnd(t.ov,s); });
+}
+function swMiniBoss(){
+  var t=_swMiniOverlay('🏰 城堡區：打屎王','狂撳屎王打低佢！','#6d28d9');
+  var hp=15, running=true, end=Date.now()+15000;
+  var boss=document.createElement('div');
+  boss.style.cssText='position:absolute;font-size:64px;left:0;top:34%;cursor:pointer;user-select:none';
+  boss.textContent='💩';
+  t.area.appendChild(boss);
+  var bar=document.createElement('div');
+  bar.style.cssText='position:absolute;top:6px;left:6px;right:6px;height:10px;background:rgba(255,255,255,.4);border-radius:6px;overflow:hidden';
+  bar.innerHTML='<i style="display:block;height:100%;width:100%;background:#f43f5e"></i>';
+  t.area.appendChild(bar);
+  var dir=1;
+  var mv=setInterval(function(){ if(!running)return; var x=parseInt(boss.style.left)||0; x+=dir*16; if(x>(t.area.clientWidth-70)||x<0) dir*=-1; boss.style.left=x+'px'; },40);
+  boss.onclick=function(){ if(!running)return; hp--; bar.firstChild.style.width=(hp/15*100)+'%'; boss.style.transform='scale(.85)'; setTimeout(function(){ boss.style.transform=''; },70); try{tone(220,0,0.1,'square',0.08);}catch(x){} if(hp<=0){ clearInterval(mv); running=false; swMiniEnd(t.ov,15); } };
+  _miniTicker(t,end,function(){return hp;},0,function(s){ clearInterval(mv); running=false; swMiniEnd(t.ov,(15-hp)); });
+}
+function swMiniEnd(ov,score){
+  window._swScore=score||0;
+  ov.innerHTML='<div class="sw-mini-title">🏁 完成！</div><div class="sw-mini-sub">得分 '+window._swScore+'</div><button class="sw-mini-btn" onclick="swMiniClose()">攞獎勵 ➜</button>';
+}
+window.swMiniClose=function(score){
+  score=(typeof score==='number')?score:(window._swScore||0);
+  var ov=document.querySelector('.sw-mini'); if(ov) ov.parentNode.removeChild(ov);
+  if(score>0){ try{ var me=getMe(); me.coins=(me.coins||0)+score; saveMe(me); toast('🎁 小遊戲獎勵 +'+score+' 金幣'); }catch(e){} }
+};
+
 
   /* ---------- 掛鈎：過關後小遊戲 + 地圖故事 ---------- */
   try{
