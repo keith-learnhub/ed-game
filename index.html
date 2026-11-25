@@ -58,6 +58,28 @@ header .pill{display:inline-block;background:rgba(255,255,255,.22);border:1px so
 footer{text-align:center;color:var(--ink-soft);font-size:12px;margin-top:30px;line-height:1.9}
 footer b{color:var(--green-d)}
 .hint{background:var(--amber);border-radius:14px;padding:10px 14px;font-size:13px;color:#fff;font-weight:600;margin-top:18px;text-align:center}
+
+.music-fab{position:fixed;top:12px;right:12px;z-index:90;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.45);color:#fff;border-radius:999px;padding:8px 14px;font-weight:800;font-size:13px;cursor:pointer;backdrop-filter:blur(4px)}
+.chat-fab{position:fixed;right:16px;bottom:16px;z-index:95;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#0aa06e,#118ab2);color:#fff;border:none;font-size:26px;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.25)}
+.chat-panel{position:fixed;right:16px;bottom:84px;z-index:96;width:min(360px,calc(100vw - 32px));height:460px;background:#fff;border-radius:18px;box-shadow:0 12px 30px rgba(0,0,0,.25);display:flex;flex-direction:column;overflow:hidden}
+.chat-panel .head{background:linear-gradient(135deg,#0aa06e,#118ab2);color:#fff;padding:12px 14px;font-weight:800;display:flex;justify-content:space-between;align-items:center}
+.chat-panel .msgs{flex:1;overflow-y:auto;padding:12px;background:#f7f3e8;display:flex;flex-direction:column}
+.chat-panel .msg{margin:5px 0;max-width:85%;padding:9px 12px;border-radius:14px;font-size:14px;line-height:1.55;white-space:pre-wrap}
+.msg.bot{background:#fff;border:1px solid #ece7da;align-self:flex-start}
+.msg.user{background:#0aa06e;color:#fff;align-self:flex-end;margin-left:auto}
+.quick{display:flex;flex-wrap:wrap;gap:6px;padding:6px 12px;background:#fff;border-top:1px solid #ece7da}
+.quick button{background:#eaf7f0;border:1px solid #cfeede;color:#059669;border-radius:999px;font-size:12px;padding:5px 10px;cursor:pointer}
+.chat-panel .inp{display:flex;border-top:1px solid #ece7da}
+.chat-panel .inp input{flex:1;border:none;padding:12px;font-size:14px;outline:none;font-family:inherit}
+.chat-panel .inp button{border:none;background:#0aa06e;color:#fff;padding:0 16px;font-weight:800;cursor:pointer}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:120;display:grid;place-items:center}
+.modal-bg.hidden{display:none}
+.modal{background:#fff;border-radius:18px;padding:18px;width:min(400px,calc(100vw - 32px))}
+.modal h3{margin:0 0 10px}
+.modal input,.modal select,.modal textarea{width:100%;border:2px solid #ece7da;border-radius:10px;padding:9px;font-size:14px;margin-bottom:10px;box-sizing:border-box;font-family:inherit}
+.modal textarea{height:90px;resize:vertical}
+.modal .row{display:flex;gap:8px}
+.modal .row button{flex:1;border:none;border-radius:10px;padding:10px;font-weight:800;cursor:pointer}
 </style>
 </head>
 <body>
@@ -65,6 +87,7 @@ footer b{color:var(--green-d)}
   <h1>🎓 吳Sir English Game</h1>
   <div class="sub">小學 Primary ・ 中學 Secondary</div>
   <span class="pill">Primary 1–6 · Secondary 1–3</span>
+<button class="music-fab" id="musicBtn" onclick="toggleMusic()">🎵 音樂</button>
 </header>
 
 <div class="wrap">
@@ -105,5 +128,85 @@ footer b{color:var(--green-d)}
 <script>
 if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(function(){}); }
 </script>
+
+<button class="chat-fab" id="chatFab" onclick="toggleChat()">💬</button>
+<div class="chat-panel" id="chatPanel" style="display:none">
+  <div class="head"><span>🤖 吳Sir 客服</span><button onclick="toggleChat()" style="background:none;border:none;color:#fff;font-size:18px;cursor:pointer">✕</button></div>
+  <div class="msgs" id="chatMsgs"></div>
+  <div class="quick">
+    <button onclick="ask('點樣開始玩？')">點樣開始玩？</button>
+    <button onclick="ask('老師密碼係咩？')">老師密碼係咩？</button>
+    <button onclick="ask('成績點儲存？')">成績點儲存？</button>
+    <button onclick="ask('錯題庫係咩？')">錯題庫係咩？</button>
+    <button onclick="emailMe()">📧 Email 我</button>
+    <button onclick="openReport()">📝 報告問題</button>
+  </div>
+  <div class="inp"><input id="chatInput" placeholder="打字問嘢…" onkeydown="if(event.key==='Enter')sendChat()"><button onclick="sendChat()">➤</button></div>
+</div>
+<div class="modal-bg hidden" id="reportModal">
+  <div class="modal">
+    <h3>📝 報告問題</h3>
+    <input id="repName" placeholder="你嘅名／聯絡（可選）">
+    <select id="repGame"><option>小學 P1–P6</option><option>中學 F1–F3</option><option>主頁／其他</option></select>
+    <p style="font-size:12px;color:#8a8a8a;margin:0 0 8px">或者直接 email：<b>keithng990323@gmail.com</b>（我會親自回覆）</p>
+    <textarea id="repText" placeholder="描述問題（例如：邊個遊戲、邊一題、有咩錯）"></textarea>
+    <div class="row"><button onclick="closeReport()" style="background:#eee;color:#555">取消</button><button onclick="submitReport()" style="background:#0aa06e;color:#fff">提交</button></div>
+  </div>
+</div>
+
+
+<script>
+/* ---- 背景音樂（Web Audio 自製） ---- */
+let audioCtx=null, musicOn=false, musicTimer=null;
+function ac(){ if(!audioCtx){try{audioCtx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}} if(audioCtx&&audioCtx.state==='suspended')audioCtx.resume(); return audioCtx; }
+function tone(freq,start,dur,type,vol){ type=type||'sine'; vol=vol==null?0.18:vol; const c=ac(); if(!c)return; const o=c.createOscillator(),g=c.createGain(); o.type=type; o.frequency.value=freq; const t=c.currentTime+start; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol,t+0.02); g.gain.exponentialRampToValueAtTime(0.0001,t+dur); o.connect(g); g.connect(c.destination); o.start(t); o.stop(t+dur+0.03); }
+const MELODY=[523,587,659,784,659,587,523,440,523,587,659,784,880,784,659,523];
+function startMusic(){ if(musicOn)return; musicOn=true; let i=0; const step=()=>{ if(!musicOn)return; tone(MELODY[i%MELODY.length],0,0.28,'triangle',0.06); i++; }; step(); musicTimer=setInterval(step,360); }
+function stopMusic(){ musicOn=false; if(musicTimer){clearInterval(musicTimer);musicTimer=null;} }
+function toggleMusic(){ ac(); if(musicOn){ stopMusic(); document.getElementById('musicBtn').textContent='🎵 音樂'; } else { startMusic(); document.getElementById('musicBtn').textContent='🔇 停音樂'; } }
+
+/* ---- AI 客服 + 報告 ---- */
+const FB='https://p4englishe103-default-rtdb.firebaseio.com';
+const CONTACT_EMAIL='keithng990323@gmail.com';
+const FAQ=[
+ {k:['開始','start','玩','begin','年級','遊戲'],a:'步驟：揀 Primary（小學）或 Secondary（中學）→ 揀年級遊戲 → 輸入姓名開始闖關。'},
+ {k:['密碼','teacher','login','登入','老師','家長'],a:'老師／家長密碼預設係 teacher123（登入後可喺 ⚙️ 設定更改）。'},
+ {k:['成績','儲存','save','record','進度','分數'],a:'成績會自動儲存喺你部機 ＋ 雲端（Firebase）。同名學生會用返同一份紀錄。'},
+ {k:['報告','report','成績表','強弱','radar'],a:'用老師密碼登入 → 學生列表 → 撳學生名，睇詳細報告（雷達圖、技能卡、強弱項、下一步建議）。'},
+ {k:['錯題','wrong','錯題庫','重做'],a:'答錯 2 次提示就會入「錯題庫」，關卡完咗可以重做；老師後台都有錯題庫 tab。'},
+ {k:['手機','iphone','android','app','主畫面','安裝'],a:'iPhone：分享 → 加入主畫面；Android：選單 → 加到主螢幕，就會似 App 咁用。'},
+];
+let chatOpened=false;
+function botReply(t){ const s=t.toLowerCase(); for(const f of FAQ){ if(f.k.some(k=>s.includes(k.toLowerCase()))) return f.a; } return '我係自動助手 🤖，可以答常見問題。如果 AI 答唔到，你可以 email 我：'+CONTACT_EMAIL+'，我會親自回覆你。'; }
+function addMsg(txt,who){ const m=document.createElement('div'); m.className='msg '+who; m.textContent=txt; document.getElementById('chatMsgs').appendChild(m); document.getElementById('chatMsgs').scrollTop=9e9; return m; }
+function toggleChat(){ const p=document.getElementById('chatPanel'); p.style.display=(p.style.display==='none')?'flex':'none'; if(!chatOpened){ chatOpened=true; setTimeout(()=>addMsg('你好！我係吳Sir 嘅 AI 助手 🤖 有咩可以幫你？','bot'),120); } }
+const AI_WORKER_URL='https://billowing-moon-ffb6.keithng990323.workers.dev/api/chat'; /* 填上你嘅 Cloudflare Worker URL，例如 'https://xxx.workers.dev/api/chat'（留空＝用規則式助手） */
+let chatHist=[];
+async function aiReply(t){
+  if(!AI_WORKER_URL) return null;
+  try{
+    const r=await fetch(AI_WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:t,history:chatHist})});
+    const d=await r.json();
+    if(d&&d.reply){ chatHist=chatHist.concat([{role:'user',content:t},{role:'assistant',content:d.reply}]).slice(-8); return d.reply; }
+  }catch(e){}
+  return null;
+}
+async function reply(t){
+  const a=await aiReply(t);
+  let ans=a||botReply(t);
+  if(/^(AI錯誤|連接AI失敗|AI 未設定|抱歉，我暫時答唔到)/.test(ans)){
+    ans+='\n\n📧 如果好急，可以 email 我：'+CONTACT_EMAIL+'，我會親自回覆你。';
+  }
+  addMsg(ans,'bot'); saveChat(ans,'bot');
+}
+function emailMe(){ location.href='mailto:'+CONTACT_EMAIL+'?subject='+encodeURIComponent('吳Sir English Game 查詢'); }
+function ask(q){ addMsg(q,'user'); saveChat(q,'user'); setTimeout(()=>reply(q),200); }
+function sendChat(){ const i=document.getElementById('chatInput'); const t=i.value.trim(); if(!t)return; i.value=''; addMsg(t,'user'); saveChat(t,'user'); setTimeout(()=>reply(t),200); }
+function saveChat(text,who){ try{ fetch(FB+'/feedback/chat.json',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:text,role:who,t:new Date().toISOString()})}).catch(()=>{}); }catch(e){} }
+function openReport(){ document.getElementById('reportModal').classList.remove('hidden'); }
+function closeReport(){ document.getElementById('reportModal').classList.add('hidden'); }
+function submitReport(){ const name=document.getElementById('repName').value.trim(); const game=document.getElementById('repGame').value; const text=document.getElementById('repText').value.trim(); if(!text){ alert('請輸入問題描述'); return; } const rec={name:name||'匿名',game:game,text:text,page:location.href,t:new Date().toISOString()}; try{ fetch(FB+'/feedback/reports.json',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(rec)}).then(()=>{ closeReport(); document.getElementById('repName').value=''; document.getElementById('repText').value=''; alert('✅ 已收到，多謝你嘅報告！'); }).catch(()=>{ alert('⚠️ 提交失敗，請檢查網絡後再試。'); }); }catch(e){ alert('⚠️ 提交失敗'); } }
+</script>
+
 </body>
 </html>
