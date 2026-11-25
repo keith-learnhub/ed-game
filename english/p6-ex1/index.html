@@ -333,6 +333,24 @@ body.role-teacher .panel.teacher-only.active{display:block}
 .toast{position:fixed;left:50%;bottom:88px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:10px 18px;border-radius:999px;font-size:13px;font-weight:700;opacity:0;transition:.3s;z-index:80;pointer-events:none;max-width:90vw;text-align:center}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 footer{text-align:center;color:var(--ink-soft);font-size:12px;margin-top:26px}
+
+.avatar-btn{background:none;border:none;font-size:26px;cursor:pointer;line-height:1}
+.node.alt .bubble{margin-left:calc(22% - 41px)}
+.shop-item:hover{transform:scale(1.05)}
+.shop-item{transition:transform .1s}
+
+.mini-btns{display:flex;gap:8px;margin-top:8px}
+
+.match-grid{display:flex;gap:12px;justify-content:center;align-items:flex-start}
+.match-col{display:flex;flex-direction:column;gap:8px;flex:1;max-width:46%}
+.match-btn{padding:10px 12px;border:2px solid #ece7da;border-radius:12px;background:#fff;font-size:14px;cursor:pointer;transition:all .12s;text-align:left}
+.match-btn.sel{border-color:#118ab2;background:#e6f4fb;transform:scale(1.02)}
+.match-btn.paired{border-color:#10b981;background:#eaf7f0}
+.match-title{text-align:center;font-weight:800;margin-bottom:10px;font-size:15px}
+
+.combo-badge{display:none;font-weight:800;font-size:14px;color:#ff9f1c}
+.combo-badge.on{display:inline-block;animation:comboPop .3s}
+@keyframes comboPop{0%{transform:scale(1.4)}100%{transform:scale(1)}}
 </style>
 </head>
 <body>
@@ -370,10 +388,11 @@ footer{text-align:center;color:var(--ink-soft);font-size:12px;margin-top:26px}
           <div style="font-weight:800;font-size:17px">Level 地圖</div>
           <div style="font-size:12px;color:var(--ink-soft)">完成關卡攞星星，解鎖下一關！</div>
         </div>
-        <div class="xp">⭐ <span id="pathStars">0</span> / <span id="pathStarsMax">0</span></div>
+        <div class="xp">🔥 <span id="pathStreak">0</span>　🪙 <span id="pathCoins">0</span>　⭐ <span id="pathStars">0</span>/<span id="pathStarsMax">0</span>　<button class="avatar-btn" id="pathAvatar" onclick="openShop()" title="換造型">🐱</button></div>
       </div>
       <div class="progress"><div class="fill" id="pathBarFill" style="width:0%"></div></div>
     </div>
+    <div class="mini-btns"><button class="btn btn-ghost" style="font-size:12px;padding:7px 12px" onclick="openMissions()">📅 每日任務</button><button class="btn btn-ghost" style="font-size:12px;padding:7px 12px" onclick="openLeaderboard()">🏆 排行榜</button></div>
     <div class="path" id="pathWrap"><div class="path-line"></div></div>
   </div>
 
@@ -443,6 +462,25 @@ footer{text-align:center;color:var(--ink-soft);font-size:12px;margin-top:26px}
   </div>
 </div>
 
+
+<div class="modal-bg hidden" id="shopModal">
+  <div class="modal">
+    <div style="font-size:42px">🛒</div>
+    <h3>換造型（金幣商店）</h3>
+    <div style="font-size:12px;color:#888;margin:4px 0 10px">你而家有 🪙 <b id="shopCoins">0</b> 金幣。完成關卡賺金幣，用嚟換角色造型！</div>
+    <div id="shopItems" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px"></div>
+    <div class="row" style="margin-top:12px"><button class="btn btn-ghost" style="flex:1" onclick="closeShop()">關閉</button></div>
+  </div>
+</div>
+
+
+<div class="modal-bg hidden" id="missionModal">
+  <div class="modal"><div style="font-size:40px">📅</div><h3>每日任務</h3><div style="font-size:12px;color:#888;margin:4px 0 10px">每日重置，完成任務賺金幣！</div><div id="missionBody"></div><div class="row" style="margin-top:12px"><button class="btn btn-ghost" style="flex:1" onclick="closeMissions()">關閉</button></div></div>
+</div>
+<div class="modal-bg hidden" id="leaderboardModal">
+  <div class="modal"><div style="font-size:40px">🏆</div><h3>排行榜</h3><div style="font-size:12px;color:#888;margin:4px 0 10px">本遊戲頭 10 名（按⭐＋🪙）</div><div id="lbBody"></div><div class="row" style="margin-top:12px"><button class="btn btn-ghost" style="flex:1" onclick="closeLeaderboard()">關閉</button></div></div>
+</div>
+
 <!-- ============ 登入 modal ============ -->
 <div class="modal-bg show" id="nameModal">
   <div class="modal">
@@ -472,6 +510,7 @@ footer{text-align:center;color:var(--ink-soft);font-size:12px;margin-top:26px}
     <div class="lesson-top">
       <button class="lesson-quit" onclick="quitLesson()">✕</button>
       <div class="lesson-hearts" id="lessonHearts">❤️❤️❤️</div>
+      <div class="combo-badge" id="comboBadge">🔥 x0</div>
       <div class="progress-dots" id="lessonDots"></div>
     </div>
     <div class="lesson-title" id="lessonTitle">關卡</div>
@@ -548,15 +587,15 @@ footer{text-align:center;color:var(--ink-soft);font-size:12px;margin-top:26px}
 /* ===================== 內容資料 ===================== */
 
 /* 重點生字：拆字法（syl）＋粵音提示（cant） */
-const WORDS=[{"w": "preserve", "cn": "保存", "ph": ["pre", "serve"], "hint": "pre-serve", "ex": "preserve old buildings"}, {"w": "sealed", "cn": "密封", "ph": ["seal", "ed"], "hint": "seal + ed", "ex": "a sealed envelope"}, {"w": "process", "cn": "過程", "ph": ["pro", "cess"], "hint": "pro-cess", "ex": "a slow process"}, {"w": "essential", "cn": "必要", "ph": ["es", "sen", "tial"], "hint": "es-sen-tial", "ex": "essential to health"}, {"w": "ensure", "cn": "確保", "ph": ["en", "sure"], "hint": "en-sure", "ex": "ensure safety"}, {"w": "belongings", "cn": "財物", "ph": ["be", "long", "ings"], "hint": "be-long-ings", "ex": "personal belongings"}, {"w": "significance", "cn": "重要性", "ph": ["sig", "nif", "i", "cance"], "hint": "sig-nif-i-cance", "ex": "great significance"}, {"w": "wealth", "cn": "財富", "ph": ["w", "ealth"], "hint": "ealth 讀 /elθ/", "ex": "great wealth"}, {"w": "bored", "cn": "沉悶", "ph": ["b", "ored"], "hint": "bored 講感受", "ex": "I was bored."}, {"w": "boring", "cn": "令人沉悶", "ph": ["bor", "ing"], "hint": "boring 講事物", "ex": "a boring lesson"}, {"w": "either", "cn": "兩者之一", "ph": ["ei", "ther"], "hint": "ei-ther", "ex": "either A or B"}, {"w": "neither", "cn": "兩者都不", "ph": ["nei", "ther"], "hint": "nei-ther", "ex": "neither A nor B"}];
+const WORDS=[{"w": "charity", "cn": "慈善", "ph": ["char", "i", "ty"], "hint": "char-i-ty", "ex": "charity work"}, {"w": "volunteer", "cn": "義工", "ph": ["vol", "un", "teer"], "hint": "vol-un-teer", "ex": "a volunteer"}, {"w": "disaster", "cn": "災難", "ph": ["dis", "as", "ter"], "hint": "dis-as-ter", "ex": "natural disasters"}, {"w": "flood", "cn": "洪水", "ph": ["fl", "ood"], "hint": "oo 讀 /ʌ/", "ex": "a serious flood"}, {"w": "earthquake", "cn": "地震", "ph": ["earth", "quake"], "hint": "earth + quake", "ex": "an earthquake"}, {"w": "shelter", "cn": "庇護所", "ph": ["shel", "ter"], "hint": "shel-ter", "ex": "a shelter"}, {"w": "raise", "cn": "籌集", "ph": ["r", "aise"], "hint": "ai 讀 /eɪ/", "ex": "raise money"}, {"w": "donate", "cn": "捐贈", "ph": ["do", "nate"], "hint": "do-nate", "ex": "donate money"}, {"w": "cause", "cn": "慈善/原因", "ph": ["c", "ause"], "hint": "au 讀 /ɔː/", "ex": "for a good cause"}, {"w": "purpose", "cn": "目的", "ph": ["pur", "pose"], "hint": "pur-pose", "ex": "the purpose"}, {"w": "result", "cn": "結果", "ph": ["re", "sult"], "hint": "re-sult", "ex": "a possible result"}, {"w": "protect", "cn": "保護", "ph": ["pro", "tect"], "hint": "pro-tect", "ex": "protect people"}];
 /* 你張 phonics 表入面嘅拼讀組合（用嚟標示重點音） */
 const PHON_PATTERNS=['BL','CL','FL','GL','PL','SL','BR','CR','FR','GR','SR','PR','DR','TR','CH','SH','TH','WH','QU','CK','EE','OO','AR','OR','OY','OI','AL','LE','EL','NG','ING','Y','AI','AY','ER','UR','IR','EA','OW','OU','OA','UE','EW','IE','IGH','AW','AU','OLD','ILD','AIR','ARE'];
 
 /* 關卡（Duolingo 式）。acts = 活動序列 */
-const LEVELS=[{"id": "adjective", "emoji": "😮", "title": "-ed / -ing 形容詞", "sub": "Part A · adjectives", "color": "col-green", "acts": [{"type": "learn", "title": "學形容詞", "words": ["bored", "boring", "sealed", "essential"]}, {"type": "info", "title": "-ed vs -ing", "html": "<div style=\"text-align:left\"><b>-ed</b> 形容<b>人嘅感受</b>：I was bored. He was excited.｜<b>-ing</b> 形容<b>令人有呢種感覺嘅事物</b>：The lesson was boring. The news was exciting.</div>"}, {"type": "fill", "title": "填 -ed 或 -ing", "qs": [{"q": "I was ______ (bore) in that lesson.", "ans": "bored"}, {"q": "The lesson was ______ (bore).", "ans": "boring"}, {"q": "The noise is really ______ (annoy).", "ans": "annoying"}, {"q": "She was ______ (excite) about the trip.", "ans": "excited"}, {"q": "The film was ______ (interest).", "ans": "interesting"}]}, {"type": "mcq", "title": "揀啱", "qs": [{"q": "I felt ______ after the long walk.", "opts": ["tired", "tiring", "tire"], "ans": 0}, {"q": "The long walk was ______.", "opts": ["tiring", "tired", "tire"], "ans": 0}]}]}, {"id": "eitheror", "emoji": "⚖️", "title": "either…or / neither…nor", "sub": "Part A · connectives", "color": "col-amber", "acts": [{"type": "info", "title": "either…or / neither…nor", "html": "<div style=\"text-align:left\"><b>either A or B</b>＝A 或 B（二選一）：I want either an apple or an orange.｜<b>neither A nor B</b>＝A 同 B 都唔係：Neither James nor Irene knows how to train dogs.</div>"}, {"type": "mcq", "title": "揀 or 定 nor", "qs": [{"q": "I want either an apple ______ an orange.", "opts": ["or", "nor", "and"], "ans": 0}, {"q": "Neither James ______ Irene knows how to train dogs.", "opts": ["nor", "or", "and"], "ans": 0}, {"q": "You can either walk ______ take a bus.", "opts": ["or", "nor", "but"], "ans": 0}, {"q": "Neither the teacher ______ the students were happy.", "opts": ["nor", "or", "and"], "ans": 0}]}]}, {"id": "vocab", "emoji": "📚", "title": "生字", "sub": "Part A · vocabulary", "color": "col-purple", "acts": [{"type": "learn", "title": "學生字", "words": ["preserve", "sealed", "process", "essential", "ensure", "belongings"]}, {"type": "info", "title": "生字意思", "html": "<div style=\"text-align:left\"><b>preserve</b> 保存｜<b>sealed</b> 密封｜<b>process</b> 過程｜<b>essential</b> 必要｜<b>ensure</b> 確保｜<b>belongings</b> 財物｜<b>significance</b> 重要性｜<b>wealth</b> 財富。</div>"}, {"type": "mcq", "title": "揀啱生字", "qs": [{"q": "The documents were kept in a ______ envelope.", "opts": ["sealed", "essential", "wealthy"], "ans": 0}, {"q": "Good communication is ______ to a healthy relationship.", "opts": ["essential", "sealed", "bored"], "ans": 0}, {"q": "Please ______ your safety before you start.", "opts": ["ensure", "preserve", "process"], "ans": 0}, {"q": "The government wants to ______ old buildings.", "opts": ["preserve", "ensure", "process"], "ans": 0}]}]}, {"id": "wordform", "emoji": "🔧", "title": "詞形變化", "sub": "Part B · word forms", "color": "col-pink", "acts": [{"type": "info", "title": "詞形", "html": "<div style=\"text-align:left\">同一個字嘅唔同詞性：preserve (v.) → preservation (n.)；significance (n.) → significant (adj.)；wealth (n.) → wealthy (adj.)；essential (adj.) → essentially (adv.)。</div>"}, {"type": "fill", "title": "填啱詞形", "qs": [{"q": "The ______ (preserve) of old buildings is important.", "ans": "preservation"}, {"q": "He is a ______ (wealth) man.", "ans": "wealthy"}, {"q": "This is a ______ (significance) discovery.", "ans": "significant"}, {"q": "Water is ______ (essence) for life.", "ans": "essential"}]}]}, {"id": "read1", "emoji": "📖", "title": "閱讀", "sub": "Saving the Old Market", "color": "col-blue", "acts": [{"type": "read", "title": "閱讀理解：Saving the Old Market", "passage": {"title": "Saving the Old Market", "source": "A passage", "paras": ["The old market in our town is over a hundred years old. Many people want to preserve it because it has great significance for the community.", "Last year, the government planned to pull it down. However, the residents wrote letters and held meetings to ensure that their voices were heard.", "Finally, the government agreed to keep the market. It will be repaired and turned into a cultural centre. Everyone is happy."], "keyWords": ["old market", "preserve", "significance", "government", "residents", "cultural centre"], "qs": [{"type": "mc", "q": "How old is the old market?", "opts": ["over a hundred years", "ten years", "twenty years", "fifty years"], "ans": 0}, {"type": "mc", "q": "What did the residents do to save the market?", "opts": ["wrote letters and held meetings", "moved away", "built a new market", "closed the market"], "ans": 0}, {"type": "txt", "instr": "complete", "q": "What will the old market become?", "keys": ["cultural centre"], "need": 1, "model": "It will become a cultural centre.", "cap": true}, {"type": "txt", "instr": "short", "q": "Many people want to ______ the old market.", "ans": "preserve", "cap": false}]}}]}, {"id": "read2", "emoji": "📖", "title": "閱讀", "sub": "A Museum Notice", "color": "col-blue", "acts": [{"type": "read", "title": "閱讀理解：A Museum Notice", "passage": {"title": "A Museum Notice", "source": "A notice", "paras": ["Dear visitors,", "Welcome to the City Museum. Please do not touch the exhibits. Our staff will ensure your safety.", "All personal belongings must be kept in the lockers. Photography is not allowed inside.", "Thank you for your visit. We hope you have a wonderful experience!"], "keyWords": ["City Museum", "exhibits", "staff", "lockers", "photography", "experience"], "qs": [{"type": "mc", "q": "What must visitors do with their belongings?", "opts": ["keep them in the lockers", "carry them everywhere", "give them to the staff", "leave them at home"], "ans": 0}, {"type": "mc", "q": "What is not allowed inside the museum?", "opts": ["photography", "walking", "talking", "reading"], "ans": 0}, {"type": "txt", "instr": "complete", "q": "Where should visitors keep their belongings?", "keys": ["lockers"], "need": 1, "model": "They should keep their belongings in the lockers.", "cap": true}, {"type": "txt", "instr": "short", "q": "Please do not ______ the exhibits.", "ans": "touch", "cap": false}]}}]}];
+const LEVELS=[{"id": "quant", "emoji": "🔢", "title": "so many / so much", "sub": "Charity work", "color": "col-green", "acts": [{"type": "learn", "title": "學慈善生字", "words": ["charity", "volunteer", "donate", "shelter"]}, {"type": "info", "title": "so many / so much", "html": "<div style=\"text-align:left\"><b>so many</b>＋可數複數（so many volunteers）；<b>so much</b>＋不可數（so much money）。</div>"}, {"type": "mcq", "title": "揀啱", "qs": [{"q": "There are ______ volunteers.", "opts": ["so many", "so much", "much"], "ans": 0}, {"q": "They raised ______ money.", "opts": ["so much", "so many", "many"], "ans": 0}, {"q": "There are ______ people who need help.", "opts": ["so many", "so much", "much"], "ans": 0}]}]}, {"id": "rel", "emoji": "🔗", "title": "who / which", "sub": "Relative clauses", "color": "col-amber", "acts": [{"type": "info", "title": "who / which", "html": "<div style=\"text-align:left\"><b>who</b> 加資訊形容人；<b>which</b> 形容事物。例：The girl <b>who</b> helps us is kind. This is the charity <b>which</b> helps children.</div>"}, {"type": "fill", "title": "填 who / which", "qs": [{"q": "The man ______ helps us is a doctor.", "ans": "who"}, {"q": "This is the charity ______ helps sick children.", "ans": "which"}, {"q": "The volunteers ______ came today are young.", "ans": "who"}]}, {"type": "mcq", "title": "揀啱", "qs": [{"q": "The lady ______ runs the shop is my aunt.", "opts": ["who", "which", "where"], "ans": 0}, {"q": "The poster ______ I made is big.", "opts": ["which", "who", "where"], "ans": 0}]}, {"type": "match", "title": "配對：who / which", "pairs": [{"a": "a person", "b": "who"}, {"a": "a thing", "b": "which"}, {"a": "an animal", "b": "which"}, {"a": "a teacher", "b": "who"}]}]}, {"id": "cond", "emoji": "🔁", "title": "if + so that", "sub": "Natural disasters", "color": "col-purple", "acts": [{"type": "info", "title": "if + so that", "html": "<div style=\"text-align:left\"><b>If＋現在式, will＋原形</b> 講可能結果：If it rains, there <b>will be</b> a flood.｜<b>so that</b> 表示目的：We build shelters so that people can stay safe.</div>"}, {"type": "fill", "title": "填條件句", "qs": [{"q": "If an earthquake ______ (happen), many houses will fall.", "ans": "happens"}, {"q": "We donate money so ______ they can buy food.", "ans": "that"}, {"q": "If we ______ (help), the world will be better.", "ans": "help"}]}, {"type": "mcq", "title": "揀啱", "qs": [{"q": "If a flood ______, people will lose their homes.", "opts": ["comes", "come", "came"], "ans": 0}, {"q": "They made posters so ______ everyone knows.", "opts": ["that", "if", "because"], "ans": 0}]}]}, {"id": "read1", "emoji": "📖", "title": "閱讀", "sub": "The Charity Sale", "color": "col-blue", "acts": [{"type": "read", "title": "閱讀理解：The Charity Sale", "passage": {"title": "The Charity Sale", "source": "A blog entry", "paras": ["Last week, our school had a charity sale. There were so many students who wanted to join. We raised so much money for a good cause.", "We donated the money to a charity which helps children in poor countries. We made posters so that everyone could know about the sale.", "If everyone gives a little, the world will be a better place. We should all help others."], "keyWords": ["charity sale", "students", "money", "charity", "children", "posters", "help"], "qs": [{"type": "mc", "q": "What did the school have?", "opts": ["a charity sale", "a sports day", "a concert", "a picnic"], "ans": 0}, {"type": "mc", "q": "Who got the money?", "opts": ["a charity which helps children", "the school", "the teachers", "a shop"], "ans": 0}, {"type": "txt", "instr": "complete", "q": "Why did they make posters?", "keys": ["know", "everyone"], "need": 1, "model": "They made posters so that everyone could know about the sale.", "cap": true}, {"type": "txt", "instr": "short", "q": "They raised so much ______ for a good cause.", "ans": "money", "cap": false}]}}]}, {"id": "read2", "emoji": "📖", "title": "閱讀", "sub": "Helping After a Flood", "color": "col-blue", "acts": [{"type": "read", "title": "閱讀理解：Helping After a Flood", "passage": {"title": "Helping After a Flood", "source": "A newsletter article", "paras": ["Last month, a serious flood hit a village. Many houses were damaged and people lost their homes.", "Our school raised money and sent food and clothes to the village. If we work together, we can help them rebuild their homes.", "Many volunteers went to help. They built shelters so that the people could stay safe."], "keyWords": ["flood", "village", "houses", "money", "food", "clothes", "volunteers", "shelters"], "qs": [{"type": "mc", "q": "What hit the village?", "opts": ["a flood", "an earthquake", "a fire", "a storm"], "ans": 0}, {"type": "mc", "q": "What did the school send?", "opts": ["food and clothes", "money only", "toys", "books"], "ans": 0}, {"type": "txt", "instr": "complete", "q": "Why did volunteers build shelters?", "keys": ["safe", "stay"], "need": 1, "model": "They built shelters so that the people could stay safe.", "cap": true}, {"type": "txt", "instr": "short", "q": "If we work together, we can help them ______ their homes.", "ans": "rebuild", "cap": false}]}}]}];
 
 /* 畢業測驗（10 題混合） */
-const FINAL_QUIZ=[{"q": "I was ______ in that lesson.", "opts": ["bored", "boring", "bore"], "ans": 0}, {"q": "The lesson was ______.", "opts": ["boring", "bored", "bore"], "ans": 0}, {"q": "I want either an apple ______ an orange.", "opts": ["or", "nor", "and"], "ans": 0}, {"q": "Neither James ______ Irene knows how to train dogs.", "opts": ["nor", "or", "and"], "ans": 0}, {"q": "The documents were kept in a ______ envelope.", "opts": ["sealed", "essential", "wealthy"], "ans": 0}, {"q": "Good communication is ______ to a healthy relationship.", "opts": ["essential", "sealed", "bored"], "ans": 0}, {"q": "Please ______ your safety before you start.", "opts": ["ensure", "preserve", "process"], "ans": 0}, {"q": "The ______ of old buildings is important.", "opts": ["preservation", "preserve", "preserved"], "ans": 0}, {"q": "The film was ______.", "opts": ["interesting", "interested", "interest"], "ans": 0}, {"q": "He is a ______ man.", "opts": ["wealthy", "wealth", "wealthily"], "ans": 0}];
+const FINAL_QUIZ=[{"q": "There are ______ volunteers.", "opts": ["so many", "so much", "much"], "ans": 0}, {"q": "They raised ______ money.", "opts": ["so much", "so many", "many"], "ans": 0}, {"q": "The man ______ helps us is a doctor.", "opts": ["who", "which", "where"], "ans": 0}, {"q": "This is the charity ______ helps sick children.", "opts": ["which", "who", "where"], "ans": 0}, {"q": "If it rains, there ______ a flood.", "opts": ["will be", "is", "was"], "ans": 0}, {"q": "We donate money so ______ they can buy food.", "opts": ["that", "if", "because"], "ans": 0}, {"q": "If an earthquake ______, many houses will fall.", "opts": ["happens", "happen", "happened"], "ans": 0}, {"q": "The lady ______ runs the shop is my aunt.", "opts": ["who", "which", "where"], "ans": 0}, {"q": "There are ______ people who need help.", "opts": ["so many", "so much", "much"], "ans": 0}, {"q": "If we ______, the world will be better.", "opts": ["help", "helps", "helped"], "ans": 0}];
 /* ===================== 核心：音效 / 讀音 / 慶祝 / 儲存 / 雲端 / 登入 ===================== */
 
 /* ---------- 音效引擎（Web Audio，自製音樂） ---------- */
@@ -806,7 +845,7 @@ async function cloudFetchAll(){
 
 /* ---------- 成績資料 ---------- */
 let role=null, currentName=null, records=loadJSON(LS_REC,{});
-function getMe(){ if(!records[currentName])records[currentName]={n:currentName,xp:0,stars:0,done:0,L:{},skills:{},wrongBank:[],writing:null}; if(!records[currentName].wrongBank)records[currentName].wrongBank=[]; return records[currentName]; }
+function getMe(){ if(!records[currentName])records[currentName]={n:currentName,xp:0,stars:0,done:0,coins:0,avatar:'🐱',streak:0,lastDay:'',bestStreak:0,m:{d:'',lvl:0,coin:0,r:[0,0,0]},L:{},skills:{},wrongBank:[],writing:null}; if(!records[currentName].wrongBank)records[currentName].wrongBank=[]; if(records[currentName].coins==null)records[currentName].coins=0; if(!records[currentName].avatar)records[currentName].avatar='🐱'; if(records[currentName].streak==null)records[currentName].streak=0; if(records[currentName].bestStreak==null)records[currentName].bestStreak=0; if(!records[currentName].m)records[currentName].m={d:'',lvl:0,coin:0,r:[0,0,0]}; if(!records[currentName].m.r)records[currentName].m.r=[0,0,0]; return records[currentName]; }
 function saveMe(me){
   me.n=currentName; me.t=new Date().toISOString();
   records[currentName]=me; saveJSON(LS_REC,records);
@@ -819,6 +858,7 @@ function recLevel(levelId,pct,starsParam){
   const best=prev?Math.max(prev.p||0,pct):pct;
   const bestStars=prev?Math.max(prev.s||0,lvStars):lvStars;
   me.L[levelId]={s:bestStars,p:best,t:new Date().toISOString()};
+  if(!prev){ const gain=levelId==='final'?100:(10+bestStars*10); me.coins=(me.coins||0)+gain; bumpMissions(levelId==='final'?2:1, gain); }
   /* 重新彙總 */
   let stars=0,xp=0,done=0;
   Object.keys(me.L).forEach(k=>{ if(k!=='final'){ stars+=me.L[k].s; xp+=me.L[k].p>=50? (10+me.L[k].s*10):5; if(me.L[k].s>0)done++; } });
@@ -868,6 +908,7 @@ function enterApp(){
   }else{
     loadMyView();
     switchToTab('path');
+    tickStreak();
   }
 }
 function logout(){
@@ -909,7 +950,7 @@ function renderPath(){
     const locked=!levelUnlocked(i);
     const rec=(me.L&&me.L[lv.id])||null;
     const stars=rec?rec.s:0;
-    html+='<div class="node'+(locked?' locked':'')+(rec&&rec.s>0?' done':'')+'" onclick="'+(locked?'toast(\'完成上一關先解鎖！\')':'openLevel('+i+')')+'">'
+    html+='<div class="node'+(i%2?' alt':'')+(locked?' locked':'')+(rec&&rec.s>0?' done':'')+'" onclick="'+(locked?'toast(\'完成上一關先解鎖！\')':'openLevel('+i+')')+'">'
       +'<div class="bubble '+lv.color+'"><span class="lv">'+(i+1)+'</span>'+lv.emoji+'<span class="stars">'+starStr(stars)+'</span></div>'
       +'<div class="meta"><div class="t">'+esc(lv.title)+'</div><div class="s">'+esc(lv.sub)+'</div></div>'
       +'</div>';
@@ -917,10 +958,13 @@ function renderPath(){
   /* 畢業測驗 */
   const finRec=(me.L&&me.L['final'])||null;
   const allDone=LEVELS.every((lv)=>me.L&&me.L[lv.id]&&me.L[lv.id].s>0);
-  html+='<div class="node'+(allDone?'':' locked')+'"><div class="bubble col-green" style="background:linear-gradient(135deg,#ffd166,#f57c00)" onclick="'+(allDone?'openFinal()':'toast(\'完成晒所有關卡先可以畢業測驗！\')')+'"><span class="lv">🏆</span>🎓<span class="stars">'+starStr(finRec?finRec.s:0)+'</span></div><div class="meta"><div class="t">畢業測驗</div><div class="s">10 題大挑戰</div></div></div>';
+  html+='<div class="node'+(allDone?'':' locked')+'"><div class="bubble col-green" style="background:linear-gradient(135deg,#ff5e62,#c11f2e)" onclick="'+(allDone?'openFinal()':'toast(\'完成晒所有關卡先可以打大魔王！\')')+'"><span class="lv">👑</span>👾<span class="stars">'+starStr(finRec?finRec.s:0)+'</span></div><div class="meta"><div class="t">Boss 大魔王</div><div class="s">擊敗大魔王攞 100 🪙！</div></div></div>';
   wrap.innerHTML=html;
   document.getElementById('pathStars').textContent=me.stars||0;
   document.getElementById('pathStarsMax').textContent=(LEVELS.length+1)*3;
+  document.getElementById('pathCoins').textContent=me.coins||0;
+  document.getElementById('pathStreak').textContent=me.streak||0;
+  const _av=document.getElementById('pathAvatar'); if(_av)_av.textContent=me.avatar||'🐱';
   document.getElementById('pathBarFill').style.width=Math.min(100,Math.round((me.done||0)/LEVELS.length*100))+'%';
 }
 function openLevel(i){
@@ -934,9 +978,9 @@ function openLevel(i){
 }
 function openFinal(){
   pendingLevel='final';
-  document.getElementById('levelIntroEmoji').textContent='🎓';
-  document.getElementById('levelIntroTitle').textContent='畢業測驗';
-  document.getElementById('levelIntroDesc').textContent='10 題大挑戰，考晒所有文法同閱讀！';
+  document.getElementById('levelIntroEmoji').textContent='👾';
+  document.getElementById('levelIntroTitle').textContent='Boss 大魔王';
+  document.getElementById('levelIntroDesc').textContent='答啱扣大魔王血！贏咗攞 100 🪙 大獎！';
   const rec=(getMe().L&&getMe().L['final'])||null;
   document.getElementById('levelIntroStars').textContent=starStr(rec?rec.s:0);
   document.getElementById('levelIntroModal').classList.add('show');
@@ -1080,7 +1124,7 @@ function spellMasterCheck(){
 function spellMasterNext(){ sndClick(); masterIdx=(masterIdx+1)%WORDS.length; renderSpellMaster(); }
 
 /* ---------- 閱讀（文章靠左） ---------- */
-const KW=["preserve", "sealed", "process", "essential", "ensure", "belongings", "significance", "wealth"];
+const KW=["charity", "volunteer", "disaster", "flood", "earthquake", "shelter", "raise", "donate", "purpose", "protect"];
 function highlightVocab(text){
   let t=esc(text);
   const kws=[].concat(KW,WORDS.map(w=>w.w)).filter(k=>k.length>=4).sort((a,b)=>b.length-a.length);
@@ -1296,9 +1340,9 @@ function openPracticeReading(i){
 let L=null, autoTimer=null, sortData=null, orderData=null;
 
 /* 能力維度（雷達 8 軸，對應試卷 A–I 重點） */
-const SKILLS=[{"id": "spelling", "label": "拼寫", "emoji": "🔤"}, {"id": "adjective", "label": "-ed / -ing", "emoji": "😮"}, {"id": "eitheror", "label": "either…or", "emoji": "⚖️"}, {"id": "vocab", "label": "生字", "emoji": "📚"}, {"id": "wordform", "label": "詞形", "emoji": "🔧"}, {"id": "reading", "label": "閱讀", "emoji": "📖"}];
-const LEVEL_SKILL={"adjective": "adjective", "eitheror": "eitheror", "vocab": "vocab", "wordform": "wordform", "read1": "reading", "read2": "reading"};
-const FINAL_SKILLS=["adjective", "eitheror", "vocab", "wordform", "spelling", "adjective", "reading", "eitheror", "vocab", "wordform"];
+const SKILLS=[{"id": "spelling", "label": "拼寫", "emoji": "🔤"}, {"id": "quant", "label": "so many / so much", "emoji": "🔢"}, {"id": "rel", "label": "who / which", "emoji": "🔗"}, {"id": "cond", "label": "if + so that", "emoji": "🔁"}, {"id": "reading", "label": "閱讀", "emoji": "📖"}];
+const LEVEL_SKILL={"quant": "quant", "rel": "rel", "cond": "cond", "read1": "reading", "read2": "reading"};
+const FINAL_SKILLS=["quant", "rel", "cond", "spelling", "reading", "quant", "rel", "cond", "reading", "spelling"];
 function trackSkill(skill,ok){
   if(!skill)return;
   const me=getMe(); if(!me.skills)me.skills={};
@@ -1319,6 +1363,7 @@ function buildSteps(acts,levelId){
       act.qs.forEach((q,i)=>{ const sk=levelId==='final'?(FINAL_SKILLS[i]||'reading'):(LEVEL_SKILL[levelId]||'reading'); steps.push({type:t,q:q,scoredItems:1,skill:sk,label:(act.title||'問題')+'（'+(i+1)+'/'+act.qs.length+'）'}); });
     }
     else if(t==='sort') steps.push({type:'sort',act:act,scoredItems:1,skill:(LEVEL_SKILL[levelId]||'reading'),label:act.title||'分一分'});
+    else if(t==='match') steps.push({type:'match',act:act,scoredItems:act.pairs.length,skill:(LEVEL_SKILL[levelId]||'reading'),label:act.title||'配對'});
     else if(t==='order') steps.push({type:'order',act:act,scoredItems:1,skill:(LEVEL_SKILL[levelId]||'reading'),label:act.title||'排次序'});
     else if(t==='read') steps.push({type:'read',act:act,scoredItems:act.passage.qs.length,skill:'reading',label:act.title||'閱讀理解'});
     else if(t==='writing') steps.push({type:'writing',act:act,scoredItems:0,skill:'writing',label:act.title||'寫作'});
@@ -1365,7 +1410,7 @@ function loseHeart(){
   if(L.hearts<=0){ showFb('💔 冇心心喇，小老師教你！','no'); setTimeout(()=>showTeachNote(),700); return true; }
   return false;
 }
-function markCorrect(){ L.correct++; trackSkill(L.steps[L.si].skill,true); trackWord(L.steps[L.si],true); sndCorrect(); starBurst(); showFb('✅ 啱！','ok'); document.getElementById('lessonCheck').classList.add('hidden'); autoNext(); }
+function markCorrect(){ L.correct++; L.combo=(L.combo||0)+1; renderCombo(); if(L.combo>=5 && L.combo%5===0){ const me=getMe(); const bonus=10; me.coins=(me.coins||0)+bonus; saveMe(me); toast('🔥 '+L.combo+' 連擊！額外 +'+bonus+' 🪙'); } trackSkill(L.steps[L.si].skill,true); trackWord(L.steps[L.si],true); sndCorrect(); starBurst(); showFb('✅ 啱！','ok'); document.getElementById('lessonCheck').classList.add('hidden'); autoNext(); }
 /* 每題最多 2 個提示；2 次都唔啱就「留返下次」，並記入錯題庫 */
 function stepHint(step,n){
   if(!step)return '';
@@ -1381,6 +1426,7 @@ function stepHint(step,n){
     return '第一個字母係「'+(step.word[0]||'？')+'」，總共 '+step.word.length+' 個字母。';
   }
   if(step.type==='sort')return n===1?'逐個字撳，睇吓佢屬邊一類。':'先分可數／不可數，或者肯定／否定。';
+  if(step.type==='match')return n===1?'先搵一個肯定識嘅配對。':'逐對配，配錯會扣心心。';
   if(step.type==='order')return n===1?'先搵 First 同 Finally 擺位。':'中間步驟要合邏輯、順序做。';
   return '再試一次。';
 }
@@ -1395,6 +1441,7 @@ function wrongToStep(item){
   if(item.type==='mcq'||item.type==='fill')return {type:item.type,q:item.q,scoredItems:1,skill:item.skill,label:item.label};
   if(item.type==='spell'||item.type==='typeword')return {type:item.type,word:item.word,scoredItems:1,skill:item.skill,label:item.label};
   if(item.type==='sort'||item.type==='order')return {type:item.type,act:item.act,scoredItems:1,skill:item.skill,label:item.label};
+  if(item.type==='match')return {type:'match',act:item.act,scoredItems:1,skill:item.skill,label:item.label};
   return null;
 }
 function recordWrong(step){
@@ -1407,6 +1454,7 @@ function recordWrong(step){
   if(!me.wrongBank.some(x=>x._key===key)){ me.wrongBank.push(Object.assign({t:new Date().toISOString()},item)); try{saveJSON(LS_REC,records);}catch(e){} }
 }
 function markWrong(advance,msg){
+  L.combo=0; renderCombo();
   const step=L.steps[L.si];
   trackSkill(step.skill,false); trackWord(step,false);
   sndWrong();
@@ -1427,6 +1475,7 @@ function checkActivity(){
   if(step.type==='fill') checkFill(step);
   else if(step.type==='spell'||step.type==='typeword'){ if(spellCheckNow())markCorrect(); else markWrong(softRetryActive()); }
   else if(step.type==='sort') checkSort(step);
+  else if(step.type==='match') checkMatch(step);
   else if(step.type==='order') checkOrder(step);
   else if(step.type==='writing') checkWriting(step);
 }
@@ -1444,6 +1493,7 @@ function renderStep(){
   else if(step.type==='spell') renderLessonSpell(step,body);
   else if(step.type==='typeword') renderLessonType(step,body);
   else if(step.type==='sort') renderSortStep(step,body);
+  else if(step.type==='match') renderMatchStep(step,body);
   else if(step.type==='order') renderOrderStep(step,body);
   else if(step.type==='read') renderReadStep(step,body);
   else if(step.type==='writing') renderWritingStep(step,body);
@@ -1846,8 +1896,8 @@ function radarSVG(scores){
     +'<polygon points="'+data.join(' ')+'" fill="url(#rg)" fill-opacity="0.35" stroke="#7c3aed" stroke-width="2.5"/>'
     +dots+labels+'</svg>';
 }
-const PART_LABEL={"spelling": "拼寫（串字大師）", "adjective": "-ed / -ing 形容詞", "eitheror": "either…or / neither…nor", "vocab": "生字", "wordform": "詞形變化", "reading": "閱讀"};
-const SKILL_TIP={"spelling": "用「拆字法＋phonics」，去「🔤 串字大師」逐個字練。", "adjective": "-ed 講感受（bored）；-ing 講令人…（boring）。", "eitheror": "either A or B（二選一）；neither A nor B（兩者都不）。", "vocab": "preserve 保存、sealed 密封、essential 必要、ensure 確保、belongings 財物。", "wordform": "詞性要啱：preserve (v.) / preservation (n.)；wealth (n.) / wealthy (adj.)。", "reading": "答題前先 highlight 關鍵字，再用完整句子答。"};
+const PART_LABEL={"spelling": "拼寫（串字大師）", "quant": "so many / so much", "rel": "who / which", "cond": "if ＋ so that", "reading": "閱讀"};
+const SKILL_TIP={"spelling": "用「拆字法＋phonics」，去「🔤 串字大師」逐個字練。", "quant": "so many＋可數複數、so much＋不可數。", "rel": "who 人、which 事物。", "cond": "If＋現在式, will＋原形；so that 表示目的。", "reading": "答題前先 highlight 關鍵字，再用完整句子答。"};
 function buildDetailedFeedback(r){
   const sk=r.skills||{};
   const rows=SKILLS.map(s=>{ const d=sk[s.id]; return {s:s,p:(d&&d.t)?Math.round(d.c/d.t*100):null,d:d}; });
@@ -2041,6 +2091,110 @@ function init(){
   cloudLoadPw();
 }
 document.addEventListener('DOMContentLoaded',init);
+</script>
+<script>
+
+/* ---- Avatar 金幣商店 ---- */
+const AVATARS=[{e:'🐱',c:0},{e:'🐶',c:0},{e:'🐼',c:20},{e:'🦊',c:20},{e:'🦁',c:40},{e:'🐸',c:40},{e:'🐧',c:60},{e:'🦄',c:80},{e:'🐲',c:100},{e:'🤖',c:120},{e:'👾',c:150},{e:'🌟',c:200}];
+function openShop(){
+  const me=getMe();
+  document.getElementById('shopCoins').textContent=me.coins||0;
+  document.getElementById('shopItems').innerHTML=AVATARS.map(a=>'<button class="shop-item" style="font-size:26px;padding:8px;border-radius:12px;border:2px solid '+(me.avatar===a.e?'#10b981':'#ece7da')+';background:#fff;cursor:pointer" onclick="buyAvatar(\''+a.e+'\','+a.c+')">'+a.e+'<div style="font-size:10px">'+(a.c?a.c+'🪙':'免費')+'</div></button>').join('');
+  document.getElementById('shopModal').classList.remove('hidden');
+}
+function closeShop(){ document.getElementById('shopModal').classList.add('hidden'); }
+function buyAvatar(e,c){
+  const me=getMe();
+  if((me.coins||0)<c){ toast('金幣唔夠，去完成關卡賺金幣啦！'); return; }
+  me.coins-=c; me.avatar=e; saveMe(me);
+  document.getElementById('pathAvatar').textContent=e;
+  document.getElementById('pathCoins').textContent=me.coins;
+  openShop(); toast('換咗新造型！');
+}
+
+</script>
+<script>
+
+/* ---- Phase 2：streak / 每日任務 / 排行榜 ---- */
+const MISSIONS=[{t:'完成 1 個關卡',need:1,k:'lvl',reward:20},{t:'完成 3 個關卡',need:3,k:'lvl',reward:50},{t:'賺 50 金幣',need:50,k:'coin',reward:30}];
+function ymd(off){ const d=new Date(); if(off)d.setDate(d.getDate()+off); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function tickStreak(){
+  const me=getMe(); const t=ymd();
+  if(me.lastDay===t) return;
+  const y=ymd(-1);
+  me.streak=(me.lastDay===y)?((me.streak||0)+1):1;
+  me.lastDay=t; me.bestStreak=Math.max(me.bestStreak||0,me.streak);
+  saveMe(me); updateStreakUI();
+}
+function updateStreakUI(){ const el=document.getElementById('pathStreak'); if(el)el.textContent=getMe().streak||0; }
+function bumpMissions(lvlInc, coinInc){
+  const me=getMe(); const today=ymd();
+  if(!me.m || me.m.d!==today){ me.m={d:today,lvl:0,coin:0,r:[0,0,0]}; }
+  me.m.lvl=(me.m.lvl||0)+lvlInc; me.m.coin=(me.m.coin||0)+coinInc;
+  if(!me.m.r) me.m.r=[0,0,0];
+  MISSIONS.forEach((ms,i)=>{ if(!me.m.r[i] && (me.m[ms.k]||0)>=ms.need){ me.m.r[i]=1; me.coins=(me.coins||0)+ms.reward; toast('🎁 完成每日任務：'+ms.t+'　+'+ms.reward+' 🪙'); } });
+  saveMe(me);
+}
+function openMissions(){ renderMissions(); document.getElementById('missionModal').classList.remove('hidden'); }
+function closeMissions(){ document.getElementById('missionModal').classList.add('hidden'); }
+function renderMissions(){
+  const me=getMe(); const today=ymd();
+  if(!me.m || me.m.d!==today){ me.m={d:today,lvl:0,coin:0,r:[0,0,0]}; }
+  document.getElementById('missionBody').innerHTML=MISSIONS.map((ms,i)=>{
+    const p=Math.min(100,Math.round(((me.m[ms.k]||0)/ms.need)*100)); const done=me.m.r[i];
+    return '<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:13px"><span>'+(done?'✅ ':'')+ms.t+'　+'+ms.reward+'🪙</span><span>'+Math.min(me.m[ms.k]||0,ms.need)+'/'+ms.need+'</span></div><div style="height:8px;background:#ece7da;border-radius:999px;overflow:hidden"><div style="width:'+p+'%;height:100%;background:'+(done?'#10b981':'#ff9f1c')+'"></div></div></div>';
+  }).join('');
+}
+async function openLeaderboard(){
+  document.getElementById('leaderboardModal').classList.remove('hidden');
+  document.getElementById('lbBody').innerHTML='<div style="text-align:center;padding:20px">載入中…</div>';
+  const cloud=await cloudFetchAll(); const me=getMe();
+  let rows=[];
+  Object.keys(cloud).forEach(n=>{ const r=cloud[n]; if(r&&r.n) rows.push({n:r.n,stars:r.stars||0,coins:r.coins||0}); });
+  if(!rows.some(r=>r.n===currentName)) rows.push({n:currentName,stars:me.stars||0,coins:me.coins||0});
+  rows.sort((a,b)=>(b.stars-a.stars)||(b.coins-a.coins));
+  const top=rows.slice(0,10);
+  const medal=['🥇','🥈','🥉'];
+  document.getElementById('lbBody').innerHTML='<table style="width:100%;border-collapse:collapse;font-size:14px">'+top.map((r,i)=>'<tr'+(r.n===currentName?' style="background:#eaf7f0"':'')+'><td style="padding:6px">'+(medal[i]||(i+1))+'</td><td>'+esc(r.n)+(r.n===currentName?'（你）':'')+'</td><td style="text-align:right">⭐'+r.stars+'</td><td style="text-align:right">🪙'+r.coins+'</td></tr>').join('')+'</table>';
+}
+function closeLeaderboard(){ document.getElementById('leaderboardModal').classList.add('hidden'); }
+
+</script>
+<script>
+
+/* ---- 配對題型 ---- */
+let _match=null;
+function renderMatchStep(step,body){
+  const act=step.act;
+  const right=act.pairs.map((p,i)=>({t:p.b,i:i})).sort(()=>Math.random()-0.5);
+  _match={pairs:act.pairs,right:right,picks:{},selL:null};
+  let h='<div class="match-title">'+esc(act.title||'配對：撳左邊再撳右邊')+'</div><div class="match-grid">';
+  h+='<div class="match-col">'+act.pairs.map((p,i)=>'<button class="match-btn" id="ml'+i+'" onclick="matchTapL('+i+')">'+esc(p.a)+'</button>').join('')+'</div>';
+  h+='<div class="match-col">'+right.map((x,j)=>'<button class="match-btn" id="mr'+j+'" onclick="matchTapR('+j+')">'+esc(x.t)+'</button>').join('')+'</div>';
+  h+='</div>';
+  body.innerHTML=h;
+}
+function matchTapL(i){ _match.selL=i; document.querySelectorAll('.match-col:first-child .match-btn').forEach((b,k)=>b.classList.toggle('sel',k===i)); sndClick(); }
+function matchTapR(j){
+  if(_match.selL==null){ toast('先撳左邊一個，再撳右邊一個'); return; }
+  Object.keys(_match.picks).forEach(l=>{ if(_match.picks[l]===j) delete _match.picks[l]; });
+  _match.picks[_match.selL]=j; _match.selL=null; sndClick(); renderMatchPicks();
+}
+function renderMatchPicks(){
+  document.querySelectorAll('.match-col:first-child .match-btn').forEach((b,k)=>{ const has=_match.picks[k]!=null; b.classList.toggle('paired',has); b.classList.remove('sel'); });
+  document.querySelectorAll('.match-col:nth-child(2) .match-btn').forEach((b,j)=>{ const used=Object.values(_match.picks).indexOf(j)>=0; b.classList.toggle('paired',used); });
+}
+function checkMatch(){
+  let ok=true;
+  _match.pairs.forEach((p,i)=>{ const j=_match.picks[i]; if(j==null) ok=false; else if(_match.right[j].i!==i) ok=false; });
+  if(ok) markCorrect(); else markWrong(softRetryActive());
+}
+
+</script>
+<script>
+
+function renderCombo(){ const el=document.getElementById('comboBadge'); if(!el)return; const c=(L&&L.combo)||0; if(c>=2){ el.textContent='🔥 x'+c; el.classList.add('on'); } else { el.classList.remove('on'); } }
+
 </script>
 </body>
 </html>

@@ -194,7 +194,7 @@ async function aiReply(t){
 async function reply(t){
   const a=await aiReply(t);
   let ans=a||botReply(t);
-  if(/^(AI錯誤|連接AI失敗|AI 未設定|抱歉，我暫時答唔到)/.test(ans)){
+  if(/^(AI\s*錯誤|連接.*失敗|AI\s*未設定|抱歉，我暫時答唔到)/.test(ans)){
     ans+='\n\n📧 如果好急，可以 email 我：'+CONTACT_EMAIL+'，我會親自回覆你。';
   }
   addMsg(ans,'bot'); saveChat(ans,'bot');

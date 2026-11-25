@@ -333,6 +333,24 @@ body.role-teacher .panel.teacher-only.active{display:block}
 .toast{position:fixed;left:50%;bottom:88px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:10px 18px;border-radius:999px;font-size:13px;font-weight:700;opacity:0;transition:.3s;z-index:80;pointer-events:none;max-width:90vw;text-align:center}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 footer{text-align:center;color:var(--ink-soft);font-size:12px;margin-top:26px}
+
+.avatar-btn{background:none;border:none;font-size:26px;cursor:pointer;line-height:1}
+.node.alt .bubble{margin-left:calc(22% - 41px)}
+.shop-item:hover{transform:scale(1.05)}
+.shop-item{transition:transform .1s}
+
+.mini-btns{display:flex;gap:8px;margin-top:8px}
+
+.match-grid{display:flex;gap:12px;justify-content:center;align-items:flex-start}
+.match-col{display:flex;flex-direction:column;gap:8px;flex:1;max-width:46%}
+.match-btn{padding:10px 12px;border:2px solid #ece7da;border-radius:12px;background:#fff;font-size:14px;cursor:pointer;transition:all .12s;text-align:left}
+.match-btn.sel{border-color:#118ab2;background:#e6f4fb;transform:scale(1.02)}
+.match-btn.paired{border-color:#10b981;background:#eaf7f0}
+.match-title{text-align:center;font-weight:800;margin-bottom:10px;font-size:15px}
+
+.combo-badge{display:none;font-weight:800;font-size:14px;color:#ff9f1c}
+.combo-badge.on{display:inline-block;animation:comboPop .3s}
+@keyframes comboPop{0%{transform:scale(1.4)}100%{transform:scale(1)}}
 </style>
 </head>
 <body>
@@ -370,10 +388,11 @@ footer{text-align:center;color:var(--ink-soft);font-size:12px;margin-top:26px}
           <div style="font-weight:800;font-size:17px">Level 地圖</div>
           <div style="font-size:12px;color:var(--ink-soft)">完成關卡攞星星，解鎖下一關！</div>
         </div>
-        <div class="xp">⭐ <span id="pathStars">0</span> / <span id="pathStarsMax">0</span></div>
+        <div class="xp">🔥 <span id="pathStreak">0</span>　🪙 <span id="pathCoins">0</span>　⭐ <span id="pathStars">0</span>/<span id="pathStarsMax">0</span>　<button class="avatar-btn" id="pathAvatar" onclick="openShop()" title="換造型">🐱</button></div>
       </div>
       <div class="progress"><div class="fill" id="pathBarFill" style="width:0%"></div></div>
     </div>
+    <div class="mini-btns"><button class="btn btn-ghost" style="font-size:12px;padding:7px 12px" onclick="openMissions()">📅 每日任務</button><button class="btn btn-ghost" style="font-size:12px;padding:7px 12px" onclick="openLeaderboard()">🏆 排行榜</button></div>
     <div class="path" id="pathWrap"><div class="path-line"></div></div>
   </div>
 
@@ -443,6 +462,25 @@ footer{text-align:center;color:var(--ink-soft);font-size:12px;margin-top:26px}
   </div>
 </div>
 
+
+<div class="modal-bg hidden" id="shopModal">
+  <div class="modal">
+    <div style="font-size:42px">🛒</div>
+    <h3>換造型（金幣商店）</h3>
+    <div style="font-size:12px;color:#888;margin:4px 0 10px">你而家有 🪙 <b id="shopCoins">0</b> 金幣。完成關卡賺金幣，用嚟換角色造型！</div>
+    <div id="shopItems" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px"></div>
+    <div class="row" style="margin-top:12px"><button class="btn btn-ghost" style="flex:1" onclick="closeShop()">關閉</button></div>
+  </div>
+</div>
+
+
+<div class="modal-bg hidden" id="missionModal">
+  <div class="modal"><div style="font-size:40px">📅</div><h3>每日任務</h3><div style="font-size:12px;color:#888;margin:4px 0 10px">每日重置，完成任務賺金幣！</div><div id="missionBody"></div><div class="row" style="margin-top:12px"><button class="btn btn-ghost" style="flex:1" onclick="closeMissions()">關閉</button></div></div>
+</div>
+<div class="modal-bg hidden" id="leaderboardModal">
+  <div class="modal"><div style="font-size:40px">🏆</div><h3>排行榜</h3><div style="font-size:12px;color:#888;margin:4px 0 10px">本遊戲頭 10 名（按⭐＋🪙）</div><div id="lbBody"></div><div class="row" style="margin-top:12px"><button class="btn btn-ghost" style="flex:1" onclick="closeLeaderboard()">關閉</button></div></div>
+</div>
+
 <!-- ============ 登入 modal ============ -->
 <div class="modal-bg show" id="nameModal">
   <div class="modal">
@@ -472,6 +510,7 @@ footer{text-align:center;color:var(--ink-soft);font-size:12px;margin-top:26px}
     <div class="lesson-top">
       <button class="lesson-quit" onclick="quitLesson()">✕</button>
       <div class="lesson-hearts" id="lessonHearts">❤️❤️❤️</div>
+      <div class="combo-badge" id="comboBadge">🔥 x0</div>
       <div class="progress-dots" id="lessonDots"></div>
     </div>
     <div class="lesson-title" id="lessonTitle">關卡</div>
@@ -548,15 +587,15 @@ footer{text-align:center;color:var(--ink-soft);font-size:12px;margin-top:26px}
 /* ===================== 內容資料 ===================== */
 
 /* 重點生字：拆字法（syl）＋粵音提示（cant） */
-const WORDS=[{"w": "bakery", "cn": "麵包店", "ph": ["ba", "ke", "ry"], "hint": "bake + ry", "ex": "a bakery"}, {"w": "chemist", "cn": "藥房", "ph": ["chem", "ist"], "hint": "ch 讀 /k/", "ex": "a chemist"}, {"w": "supermarket", "cn": "超級市場", "ph": ["su", "per", "mar", "ket"], "hint": "su-per-mar-ket", "ex": "a supermarket"}, {"w": "cinema", "cn": "戲院", "ph": ["cin", "e", "ma"], "hint": "ci 讀 /sɪ/", "ex": "a cinema"}, {"w": "library", "cn": "圖書館", "ph": ["li", "bra", "ry"], "hint": "bra 讀 /breɪ/", "ex": "a library"}, {"w": "department", "cn": "百貨", "ph": ["de", "part", "ment"], "hint": "de-part-ment", "ex": "a department store"}, {"w": "listen", "cn": "聽", "ph": ["lis", "ten"], "hint": "t 唔發音", "ex": "listen to music"}, {"w": "stand", "cn": "站", "ph": ["st", "and"], "hint": "ST /st/ 開頭", "ex": "stand up"}, {"w": "clean", "cn": "清潔", "ph": ["cl", "ean"], "hint": "CL /kl/ 開頭", "ex": "clean up"}, {"w": "negative", "cn": "否定", "ph": ["neg", "a", "tive"], "hint": "neg-a-tive", "ex": "negative sentence"}, {"w": "draw", "cn": "畫", "ph": ["dr", "aw"], "hint": "DR /dr/ 開頭", "ex": "good at drawing"}, {"w": "swim", "cn": "游水", "ph": ["sw", "im"], "hint": "SW /sw/ 開頭", "ex": "good at swimming"}];
+const WORDS=[{"w": "hobby", "cn": "嗜好", "ph": ["hob", "by"], "hint": "bb 雙寫", "ex": "my hobby"}, {"w": "swimming", "cn": "游泳", "ph": ["swim", "ming"], "hint": "swim + ming", "ex": "I like swimming"}, {"w": "reading", "cn": "閱讀", "ph": ["read", "ing"], "hint": "read + ing", "ex": "I like reading"}, {"w": "drawing", "cn": "畫畫", "ph": ["draw", "ing"], "hint": "draw + ing", "ex": "I like drawing"}, {"w": "painting", "cn": "繪畫", "ph": ["paint", "ing"], "hint": "paint + ing", "ex": "I like painting"}, {"w": "singing", "cn": "唱歌", "ph": ["sing", "ing"], "hint": "sing + ing", "ex": "I like singing"}, {"w": "subject", "cn": "科目", "ph": ["sub", "ject"], "hint": "sub-ject", "ex": "my favourite subject"}, {"w": "English", "cn": "英文", "ph": ["Eng", "lish"], "hint": "Eng-lish", "ex": "English lesson"}, {"w": "because", "cn": "因為", "ph": ["be", "cause"], "hint": "be-cause", "ex": "because I like it"}, {"w": "favourite", "cn": "最喜愛", "ph": ["fa", "vour", "ite"], "hint": "fa-vour-ite", "ex": "my favourite"}, {"w": "guitar", "cn": "結他", "ph": ["gui", "tar"], "hint": "gui-tar", "ex": "play the guitar"}, {"w": "chess", "cn": "棋", "ph": ["ch", "ess"], "hint": "ch /tʃ/ 開頭", "ex": "play chess"}];
 /* 你張 phonics 表入面嘅拼讀組合（用嚟標示重點音） */
 const PHON_PATTERNS=['BL','CL','FL','GL','PL','SL','BR','CR','FR','GR','SR','PR','DR','TR','CH','SH','TH','WH','QU','CK','EE','OO','AR','OR','OY','OI','AL','LE','EL','NG','ING','Y','AI','AY','ER','UR','IR','EA','OW','OU','OA','UE','EW','IE','IGH','AW','AU','OLD','ILD','AIR','ARE'];
 
 /* 關卡（Duolingo 式）。acts = 活動序列 */
-const LEVELS=[{"id": "shops", "emoji": "🏬", "title": "商店", "sub": "Part A · shops", "color": "col-green", "acts": [{"type": "learn", "title": "學商店生字", "words": ["bakery", "chemist", "supermarket", "cinema", "library"]}, {"type": "info", "title": "商店", "html": "<div style=\"text-align:left\"><b>bakery</b> 麵包店｜<b>chemist</b> 藥房｜<b>supermarket</b> 超級市場｜<b>cinema</b> 戲院｜<b>library</b> 圖書館｜<b>department store</b> 百貨公司。</div>"}, {"type": "mcq", "title": "邊間店？", "qs": [{"q": "We buy bread at a ______.", "opts": ["bakery", "chemist", "cinema"], "ans": 0}, {"q": "We buy medicine at a ______.", "opts": ["chemist", "bakery", "library"], "ans": 0}, {"q": "We borrow books from a ______.", "opts": ["library", "cinema", "supermarket"], "ans": 0}, {"q": "We watch films at a ______.", "opts": ["cinema", "library", "chemist"], "ans": 0}, {"q": "We buy food at a ______.", "opts": ["supermarket", "cinema", "bakery"], "ans": 0}]}]}, {"id": "phrasal", "emoji": "🧩", "title": "片語動詞", "sub": "Part A · phrasal verbs", "color": "col-amber", "acts": [{"type": "info", "title": "片語動詞", "html": "<div style=\"text-align:left\"><b>stand up</b> 站起｜<b>listen to</b> 聽｜<b>look at</b> 睇｜<b>put on</b> 著（衫）｜<b>take off</b> 除（衫）｜<b>pick up</b> 拾起｜<b>clean up</b> 清理｜<b>turn off</b> 關（燈／機）。</div>"}, {"type": "mcq", "title": "揀啱片語", "qs": [{"q": "Please ______ the light. It is bright.", "opts": ["turn off", "pick up", "put on"], "ans": 0}, {"q": "______ me! I am your teacher.", "opts": ["Listen to", "Look at", "Pick up"], "ans": 0}, {"q": "______ the rubbish on the floor, please.", "opts": ["Pick up", "Take off", "Put on"], "ans": 0}, {"q": "It is cold. ______ your coat.", "opts": ["Put on", "Take off", "Clean up"], "ans": 0}, {"q": "______! The class begins.", "opts": ["Stand up", "Turn off", "Look at"], "ans": 0}]}, {"type": "fill", "title": "填片語", "qs": [{"q": "Please ______ (關) the TV.", "ans": "turn off"}, {"q": "______ (睇) the board, please.", "ans": "Look at"}]}]}, {"id": "negative", "emoji": "🚫", "title": "否定句", "sub": "Part D · negative sentences", "color": "col-purple", "acts": [{"type": "info", "title": "否定句", "html": "<div style=\"text-align:left\">I / You / We / They 用 <b>don't</b>；He / She / It 用 <b>doesn't</b>；be 動詞用 <b>isn't / aren't / am not</b>。動詞要變返原形。</div>"}, {"type": "fill", "title": "改成否定句", "qs": [{"q": "I ______ (not like) coffee.", "ans": "do not like"}, {"q": "She ______ (not go) to school today.", "ans": "does not go"}, {"q": "They ______ (not be) at home.", "ans": "are not"}, {"q": "He ______ (not eat) rice.", "ans": "does not eat"}]}, {"type": "mcq", "title": "邊句係否定？", "qs": [{"q": "邊句啱？", "opts": ["I don't like coffee.", "I don't likes coffee.", "I doesn't like coffee."], "ans": 0}, {"q": "邊句啱？", "opts": ["She doesn't go to school.", "She don't go to school.", "She doesn't goes to school."], "ans": 0}]}]}, {"id": "goodat", "emoji": "💪", "title": "擅長", "sub": "Part E · good at + ing", "color": "col-pink", "acts": [{"type": "info", "title": "good at + ing", "html": "<div style=\"text-align:left\"><b>good at</b> 後面動詞要加 <b>-ing</b>：good at drawing、good at swimming、good at running。</div>"}, {"type": "fill", "title": "填 -ing", "qs": [{"q": "I am good at ______ (draw).", "ans": "drawing"}, {"q": "She is good at ______ (swim).", "ans": "swimming"}, {"q": "He is good at ______ (run).", "ans": "running"}, {"q": "They are good at ______ (sing).", "ans": "singing"}]}, {"type": "mcq", "title": "揀啱", "qs": [{"q": "She is good at ______.", "opts": ["singing", "sing", "sings"], "ans": 0}, {"q": "I am good at ______.", "opts": ["running", "run", "runs"], "ans": 0}]}]}, {"id": "read1", "emoji": "📖", "title": "閱讀", "sub": "The Lost Book", "color": "col-blue", "acts": [{"type": "read", "title": "閱讀理解：The Lost Book", "passage": {"title": "The Lost Book", "source": "A story", "paras": ["Ken goes to the library with his sister. They borrow three books.", "On the way home, Ken's sister drops her book. A man picks it up and gives it back. She says thank you.", "After that, they go to a bakery and buy some bread."], "keyWords": ["library", "borrow", "drops", "picks it up", "bakery"], "qs": [{"type": "mc", "q": "Where do Ken and his sister go first?", "opts": ["the library", "the bakery", "the cinema", "the chemist"], "ans": 0}, {"type": "mc", "q": "Who picks up the book?", "opts": ["Ken", "a man", "the sister", "a teacher"], "ans": 1}, {"type": "txt", "instr": "complete", "q": "What do they buy at the bakery?", "keys": ["bread"], "need": 1, "model": "They buy some bread at the bakery.", "cap": true}, {"type": "txt", "instr": "short", "q": "The sister says \"______ you\" to the man.", "ans": "thank", "cap": false}]}}]}, {"id": "read2", "emoji": "📖", "title": "閱讀", "sub": "A Weekend Note", "color": "col-blue", "acts": [{"type": "read", "title": "閱讀理解：A Weekend Note", "passage": {"title": "A Weekend Note", "source": "A notice", "paras": ["Dear students,", "This Saturday, we will visit a supermarket and a sports shop. We will meet at school at 9:00 a.m. Please put on your sports shoes and bring a bottle of water.", "Do not run in the shop. Listen to your teacher. See you there!"], "keyWords": ["supermarket", "sports shop", "9:00 a.m.", "put on", "listen"], "qs": [{"type": "mc", "q": "Where will they visit?", "opts": ["a supermarket and a sports shop", "a cinema and a bakery", "a library and a chemist", "a cinema and a supermarket"], "ans": 0}, {"type": "mc", "q": "What time will they meet?", "opts": ["8:00 a.m.", "9:00 a.m.", "10:00 a.m.", "9:00 p.m."], "ans": 1}, {"type": "txt", "instr": "complete", "q": "What should students put on?", "keys": ["sports shoes", "shoes"], "need": 1, "model": "They should put on their sports shoes.", "cap": true}, {"type": "txt", "instr": "short", "q": "They should not ______ in the shop.", "ans": "run", "cap": false}]}}]}];
+const LEVELS=[{"id": "hobbies", "emoji": "🎨", "title": "嗜好", "sub": "Hobbies (-ing)", "color": "col-green", "acts": [{"type": "learn", "title": "學嗜好生字", "words": ["swimming", "reading", "drawing", "painting", "singing"]}, {"type": "info", "title": "嗜好", "html": "<div style=\"text-align:left\">講嗜好用 <b>like / enjoy + -ing</b>：I like <b>swimming</b>. She enjoys <b>reading</b>.</div>"}, {"type": "mcq", "title": "揀啱", "qs": [{"q": "I like ______ in the pool.", "opts": ["swimming", "swim", "swims"], "ans": 0}, {"q": "She enjoys ______ books.", "opts": ["reading", "read", "reads"], "ans": 0}, {"q": "He likes ______ pictures.", "opts": ["drawing", "draw", "draws"], "ans": 0}]}, {"type": "match", "title": "配對：動詞 vs -ing", "pairs": [{"a": "swim", "b": "swimming"}, {"a": "read", "b": "reading"}, {"a": "draw", "b": "drawing"}, {"a": "sing", "b": "singing"}]}]}, {"id": "link", "emoji": "🔗", "title": "and / or / but", "sub": "Linking ideas", "color": "col-amber", "acts": [{"type": "info", "title": "and / or / but", "html": "<div style=\"text-align:left\"><b>and</b> 加（A＋B）、<b>or</b> 或（二選一）、<b>but</b> 但（轉折）。例：I like reading <b>and</b> drawing. Do you like tea <b>or</b> coffee? I like tea, <b>but</b> I don't like coffee.</div>"}, {"type": "fill", "title": "填 and / or / but", "qs": [{"q": "I like apples ______ oranges.", "ans": "and"}, {"q": "Do you want tea ______ coffee?", "ans": "or"}, {"q": "I like swimming, ______ I don't like running.", "ans": "but"}]}, {"type": "mcq", "title": "揀啱", "qs": [{"q": "I like music ______ art.", "opts": ["and", "or", "but"], "ans": 0}, {"q": "It is sunny, ______ it is cold.", "opts": ["but", "and", "or"], "ans": 0}]}]}, {"id": "because", "emoji": "❓", "title": "why / because", "sub": "Reasons", "color": "col-purple", "acts": [{"type": "info", "title": "why / because", "html": "<div style=\"text-align:left\">問原因用 <b>Why…?</b>，答用 <b>Because…</b>：Why do you like English? — Because it is fun.</div>"}, {"type": "mcq", "title": "揀啱", "qs": [{"q": "______ do you like English?", "opts": ["Why", "What", "Who"], "ans": 0}, {"q": "I like English ______ it is fun.", "opts": ["because", "so", "but"], "ans": 0}, {"q": "______ is your favourite subject?", "opts": ["What", "Why", "Because"], "ans": 0}]}, {"type": "fill", "title": "填 why / because", "qs": [{"q": "______ do you like swimming?", "ans": "Why"}, {"q": "I like it ______ it is healthy.", "ans": "because"}]}]}, {"id": "goodat", "emoji": "💪", "title": "good at", "sub": "Abilities", "color": "col-pink", "acts": [{"type": "info", "title": "good at + -ing", "html": "<div style=\"text-align:left\"><b>good at</b> 後面動詞加 <b>-ing</b>：I am good at <b>drawing</b>. She is good at <b>singing</b>.</div>"}, {"type": "fill", "title": "填 -ing", "qs": [{"q": "I am good at ______ (draw).", "ans": "drawing"}, {"q": "She is good at ______ (sing).", "ans": "singing"}, {"q": "He is good at ______ (swim).", "ans": "swimming"}]}]}, {"id": "read1", "emoji": "📖", "title": "閱讀", "sub": "My Hobbies", "color": "col-blue", "acts": [{"type": "read", "title": "閱讀理解：My Hobbies", "passage": {"title": "My Hobbies", "source": "A web page", "paras": ["Hello! My name is Jack. I have many hobbies. I like swimming and reading. I also like drawing, but I am not good at painting.", "My sister likes singing and dancing. She is good at both.", "We do our hobbies together at weekends. They make us very happy."], "keyWords": ["Jack", "swimming", "reading", "drawing", "painting", "singing", "dancing"], "qs": [{"type": "mc", "q": "What does Jack like doing?", "opts": ["swimming and reading", "only painting", "only singing", "cooking"], "ans": 0}, {"type": "mc", "q": "What is Jack not good at?", "opts": ["painting", "swimming", "reading", "drawing"], "ans": 0}, {"type": "txt", "instr": "complete", "q": "What is Jack's sister good at?", "keys": ["singing", "dancing"], "need": 1, "model": "She is good at singing and dancing.", "cap": true}, {"type": "txt", "instr": "short", "q": "Jack's sister likes ______ and dancing.", "ans": "singing", "cap": false}]}}]}, {"id": "read2", "emoji": "📖", "title": "閱讀", "sub": "My Favourite Subject", "color": "col-blue", "acts": [{"type": "read", "title": "閱讀理解：My Favourite Subject", "passage": {"title": "My Favourite Subject", "source": "A song", "paras": ["My favourite subject is English. Why do I like it? Because it is fun and useful.", "I like English and Maths. But I do not like Chinese very much because it is difficult.", "I am good at English. I want to be a teacher when I grow up."], "keyWords": ["English", "fun", "useful", "Maths", "Chinese", "difficult", "teacher"], "qs": [{"type": "mc", "q": "What is the writer's favourite subject?", "opts": ["English", "Maths", "Chinese", "Music"], "ans": 0}, {"type": "mc", "q": "Why does the writer like English?", "opts": ["because it is fun and useful", "because it is difficult", "because it is easy", "because it is boring"], "ans": 0}, {"type": "txt", "instr": "complete", "q": "What does the writer want to be?", "keys": ["teacher"], "need": 1, "model": "The writer wants to be a teacher.", "cap": true}, {"type": "txt", "instr": "short", "q": "The writer does not like ______ very much.", "ans": "Chinese", "cap": false, "accept": ["chinese"]}]}}]}];
 
 /* 畢業測驗（10 題混合） */
-const FINAL_QUIZ=[{"q": "We buy bread at a ______.", "opts": ["bakery", "chemist", "cinema"], "ans": 0}, {"q": "We borrow books from a ______.", "opts": ["library", "bakery", "cinema"], "ans": 0}, {"q": "Please ______ the light.", "opts": ["turn off", "pick up", "put on"], "ans": 0}, {"q": "It is cold. ______ your coat.", "opts": ["Put on", "Take off", "Clean up"], "ans": 0}, {"q": "I ______ like coffee.", "opts": ["don't", "doesn't", "isn't"], "ans": 0}, {"q": "She ______ go to school today.", "opts": ["doesn't", "don't", "isn't"], "ans": 0}, {"q": "I am good at ______.", "opts": ["drawing", "draw", "draws"], "ans": 0}, {"q": "She is good at ______.", "opts": ["swimming", "swim", "swims"], "ans": 0}, {"q": "We buy medicine at a ______.", "opts": ["chemist", "bakery", "library"], "ans": 0}, {"q": "______! The class begins.", "opts": ["Stand up", "Turn off", "Look at"], "ans": 0}];
+const FINAL_QUIZ=[{"q": "I like ______ in the pool.", "opts": ["swimming", "swim", "swims"], "ans": 0}, {"q": "She enjoys ______ books.", "opts": ["reading", "read", "reads"], "ans": 0}, {"q": "I like apples ______ oranges.", "opts": ["and", "or", "but"], "ans": 0}, {"q": "Do you want tea ______ coffee?", "opts": ["or", "and", "but"], "ans": 0}, {"q": "I like swimming, ______ I don't like running.", "opts": ["but", "and", "or"], "ans": 0}, {"q": "______ do you like English?", "opts": ["Why", "What", "Who"], "ans": 0}, {"q": "I like English ______ it is fun.", "opts": ["because", "so", "but"], "ans": 0}, {"q": "I am good at ______.", "opts": ["drawing", "draw", "draws"], "ans": 0}, {"q": "She is good at ______.", "opts": ["singing", "sing", "sings"], "ans": 0}, {"q": "______ is your favourite subject?", "opts": ["What", "Why", "Because"], "ans": 0}];
 /* ===================== 核心：音效 / 讀音 / 慶祝 / 儲存 / 雲端 / 登入 ===================== */
 
 /* ---------- 音效引擎（Web Audio，自製音樂） ---------- */
@@ -806,7 +845,7 @@ async function cloudFetchAll(){
 
 /* ---------- 成績資料 ---------- */
 let role=null, currentName=null, records=loadJSON(LS_REC,{});
-function getMe(){ if(!records[currentName])records[currentName]={n:currentName,xp:0,stars:0,done:0,L:{},skills:{},wrongBank:[],writing:null}; if(!records[currentName].wrongBank)records[currentName].wrongBank=[]; return records[currentName]; }
+function getMe(){ if(!records[currentName])records[currentName]={n:currentName,xp:0,stars:0,done:0,coins:0,avatar:'🐱',streak:0,lastDay:'',bestStreak:0,m:{d:'',lvl:0,coin:0,r:[0,0,0]},L:{},skills:{},wrongBank:[],writing:null}; if(!records[currentName].wrongBank)records[currentName].wrongBank=[]; if(records[currentName].coins==null)records[currentName].coins=0; if(!records[currentName].avatar)records[currentName].avatar='🐱'; if(records[currentName].streak==null)records[currentName].streak=0; if(records[currentName].bestStreak==null)records[currentName].bestStreak=0; if(!records[currentName].m)records[currentName].m={d:'',lvl:0,coin:0,r:[0,0,0]}; if(!records[currentName].m.r)records[currentName].m.r=[0,0,0]; return records[currentName]; }
 function saveMe(me){
   me.n=currentName; me.t=new Date().toISOString();
   records[currentName]=me; saveJSON(LS_REC,records);
@@ -819,6 +858,7 @@ function recLevel(levelId,pct,starsParam){
   const best=prev?Math.max(prev.p||0,pct):pct;
   const bestStars=prev?Math.max(prev.s||0,lvStars):lvStars;
   me.L[levelId]={s:bestStars,p:best,t:new Date().toISOString()};
+  if(!prev){ const gain=levelId==='final'?100:(10+bestStars*10); me.coins=(me.coins||0)+gain; bumpMissions(levelId==='final'?2:1, gain); }
   /* 重新彙總 */
   let stars=0,xp=0,done=0;
   Object.keys(me.L).forEach(k=>{ if(k!=='final'){ stars+=me.L[k].s; xp+=me.L[k].p>=50? (10+me.L[k].s*10):5; if(me.L[k].s>0)done++; } });
@@ -868,6 +908,7 @@ function enterApp(){
   }else{
     loadMyView();
     switchToTab('path');
+    tickStreak();
   }
 }
 function logout(){
@@ -909,7 +950,7 @@ function renderPath(){
     const locked=!levelUnlocked(i);
     const rec=(me.L&&me.L[lv.id])||null;
     const stars=rec?rec.s:0;
-    html+='<div class="node'+(locked?' locked':'')+(rec&&rec.s>0?' done':'')+'" onclick="'+(locked?'toast(\'完成上一關先解鎖！\')':'openLevel('+i+')')+'">'
+    html+='<div class="node'+(i%2?' alt':'')+(locked?' locked':'')+(rec&&rec.s>0?' done':'')+'" onclick="'+(locked?'toast(\'完成上一關先解鎖！\')':'openLevel('+i+')')+'">'
       +'<div class="bubble '+lv.color+'"><span class="lv">'+(i+1)+'</span>'+lv.emoji+'<span class="stars">'+starStr(stars)+'</span></div>'
       +'<div class="meta"><div class="t">'+esc(lv.title)+'</div><div class="s">'+esc(lv.sub)+'</div></div>'
       +'</div>';
@@ -917,10 +958,13 @@ function renderPath(){
   /* 畢業測驗 */
   const finRec=(me.L&&me.L['final'])||null;
   const allDone=LEVELS.every((lv)=>me.L&&me.L[lv.id]&&me.L[lv.id].s>0);
-  html+='<div class="node'+(allDone?'':' locked')+'"><div class="bubble col-green" style="background:linear-gradient(135deg,#ffd166,#f57c00)" onclick="'+(allDone?'openFinal()':'toast(\'完成晒所有關卡先可以畢業測驗！\')')+'"><span class="lv">🏆</span>🎓<span class="stars">'+starStr(finRec?finRec.s:0)+'</span></div><div class="meta"><div class="t">畢業測驗</div><div class="s">10 題大挑戰</div></div></div>';
+  html+='<div class="node'+(allDone?'':' locked')+'"><div class="bubble col-green" style="background:linear-gradient(135deg,#ff5e62,#c11f2e)" onclick="'+(allDone?'openFinal()':'toast(\'完成晒所有關卡先可以打大魔王！\')')+'"><span class="lv">👑</span>👾<span class="stars">'+starStr(finRec?finRec.s:0)+'</span></div><div class="meta"><div class="t">Boss 大魔王</div><div class="s">擊敗大魔王攞 100 🪙！</div></div></div>';
   wrap.innerHTML=html;
   document.getElementById('pathStars').textContent=me.stars||0;
   document.getElementById('pathStarsMax').textContent=(LEVELS.length+1)*3;
+  document.getElementById('pathCoins').textContent=me.coins||0;
+  document.getElementById('pathStreak').textContent=me.streak||0;
+  const _av=document.getElementById('pathAvatar'); if(_av)_av.textContent=me.avatar||'🐱';
   document.getElementById('pathBarFill').style.width=Math.min(100,Math.round((me.done||0)/LEVELS.length*100))+'%';
 }
 function openLevel(i){
@@ -934,9 +978,9 @@ function openLevel(i){
 }
 function openFinal(){
   pendingLevel='final';
-  document.getElementById('levelIntroEmoji').textContent='🎓';
-  document.getElementById('levelIntroTitle').textContent='畢業測驗';
-  document.getElementById('levelIntroDesc').textContent='10 題大挑戰，考晒所有文法同閱讀！';
+  document.getElementById('levelIntroEmoji').textContent='👾';
+  document.getElementById('levelIntroTitle').textContent='Boss 大魔王';
+  document.getElementById('levelIntroDesc').textContent='答啱扣大魔王血！贏咗攞 100 🪙 大獎！';
   const rec=(getMe().L&&getMe().L['final'])||null;
   document.getElementById('levelIntroStars').textContent=starStr(rec?rec.s:0);
   document.getElementById('levelIntroModal').classList.add('show');
@@ -1080,7 +1124,7 @@ function spellMasterCheck(){
 function spellMasterNext(){ sndClick(); masterIdx=(masterIdx+1)%WORDS.length; renderSpellMaster(); }
 
 /* ---------- 閱讀（文章靠左） ---------- */
-const KW=["bakery", "chemist", "supermarket", "cinema", "library", "listen", "stand", "clean"];
+const KW=["hobby", "swimming", "reading", "drawing", "painting", "singing", "subject", "because", "favourite"];
 function highlightVocab(text){
   let t=esc(text);
   const kws=[].concat(KW,WORDS.map(w=>w.w)).filter(k=>k.length>=4).sort((a,b)=>b.length-a.length);
@@ -1296,9 +1340,9 @@ function openPracticeReading(i){
 let L=null, autoTimer=null, sortData=null, orderData=null;
 
 /* 能力維度（雷達 8 軸，對應試卷 A–I 重點） */
-const SKILLS=[{"id": "spelling", "label": "拼寫", "emoji": "🔤"}, {"id": "shops", "label": "商店", "emoji": "🏬"}, {"id": "phrasal", "label": "片語動詞", "emoji": "🧩"}, {"id": "negative", "label": "否定句", "emoji": "🚫"}, {"id": "goodat", "label": "擅長", "emoji": "💪"}, {"id": "reading", "label": "閱讀", "emoji": "📖"}];
-const LEVEL_SKILL={"shops": "shops", "phrasal": "phrasal", "negative": "negative", "goodat": "goodat", "read1": "reading", "read2": "reading"};
-const FINAL_SKILLS=["shops", "phrasal", "negative", "goodat", "spelling", "shops", "reading", "phrasal", "negative", "goodat"];
+const SKILLS=[{"id": "spelling", "label": "拼寫", "emoji": "🔤"}, {"id": "hobbies", "label": "嗜好", "emoji": "🎨"}, {"id": "link", "label": "and / or / but", "emoji": "🔗"}, {"id": "because", "label": "why / because", "emoji": "❓"}, {"id": "goodat", "label": "good at", "emoji": "💪"}, {"id": "reading", "label": "閱讀", "emoji": "📖"}];
+const LEVEL_SKILL={"hobbies": "hobbies", "link": "link", "because": "because", "goodat": "goodat", "read1": "reading", "read2": "reading"};
+const FINAL_SKILLS=["hobbies", "link", "because", "goodat", "spelling", "reading", "hobbies", "link", "because", "goodat"];
 function trackSkill(skill,ok){
   if(!skill)return;
   const me=getMe(); if(!me.skills)me.skills={};
@@ -1319,6 +1363,7 @@ function buildSteps(acts,levelId){
       act.qs.forEach((q,i)=>{ const sk=levelId==='final'?(FINAL_SKILLS[i]||'reading'):(LEVEL_SKILL[levelId]||'reading'); steps.push({type:t,q:q,scoredItems:1,skill:sk,label:(act.title||'問題')+'（'+(i+1)+'/'+act.qs.length+'）'}); });
     }
     else if(t==='sort') steps.push({type:'sort',act:act,scoredItems:1,skill:(LEVEL_SKILL[levelId]||'reading'),label:act.title||'分一分'});
+    else if(t==='match') steps.push({type:'match',act:act,scoredItems:act.pairs.length,skill:(LEVEL_SKILL[levelId]||'reading'),label:act.title||'配對'});
     else if(t==='order') steps.push({type:'order',act:act,scoredItems:1,skill:(LEVEL_SKILL[levelId]||'reading'),label:act.title||'排次序'});
     else if(t==='read') steps.push({type:'read',act:act,scoredItems:act.passage.qs.length,skill:'reading',label:act.title||'閱讀理解'});
     else if(t==='writing') steps.push({type:'writing',act:act,scoredItems:0,skill:'writing',label:act.title||'寫作'});
@@ -1365,7 +1410,7 @@ function loseHeart(){
   if(L.hearts<=0){ showFb('💔 冇心心喇，小老師教你！','no'); setTimeout(()=>showTeachNote(),700); return true; }
   return false;
 }
-function markCorrect(){ L.correct++; trackSkill(L.steps[L.si].skill,true); trackWord(L.steps[L.si],true); sndCorrect(); starBurst(); showFb('✅ 啱！','ok'); document.getElementById('lessonCheck').classList.add('hidden'); autoNext(); }
+function markCorrect(){ L.correct++; L.combo=(L.combo||0)+1; renderCombo(); if(L.combo>=5 && L.combo%5===0){ const me=getMe(); const bonus=10; me.coins=(me.coins||0)+bonus; saveMe(me); toast('🔥 '+L.combo+' 連擊！額外 +'+bonus+' 🪙'); } trackSkill(L.steps[L.si].skill,true); trackWord(L.steps[L.si],true); sndCorrect(); starBurst(); showFb('✅ 啱！','ok'); document.getElementById('lessonCheck').classList.add('hidden'); autoNext(); }
 /* 每題最多 2 個提示；2 次都唔啱就「留返下次」，並記入錯題庫 */
 function stepHint(step,n){
   if(!step)return '';
@@ -1381,6 +1426,7 @@ function stepHint(step,n){
     return '第一個字母係「'+(step.word[0]||'？')+'」，總共 '+step.word.length+' 個字母。';
   }
   if(step.type==='sort')return n===1?'逐個字撳，睇吓佢屬邊一類。':'先分可數／不可數，或者肯定／否定。';
+  if(step.type==='match')return n===1?'先搵一個肯定識嘅配對。':'逐對配，配錯會扣心心。';
   if(step.type==='order')return n===1?'先搵 First 同 Finally 擺位。':'中間步驟要合邏輯、順序做。';
   return '再試一次。';
 }
@@ -1395,6 +1441,7 @@ function wrongToStep(item){
   if(item.type==='mcq'||item.type==='fill')return {type:item.type,q:item.q,scoredItems:1,skill:item.skill,label:item.label};
   if(item.type==='spell'||item.type==='typeword')return {type:item.type,word:item.word,scoredItems:1,skill:item.skill,label:item.label};
   if(item.type==='sort'||item.type==='order')return {type:item.type,act:item.act,scoredItems:1,skill:item.skill,label:item.label};
+  if(item.type==='match')return {type:'match',act:item.act,scoredItems:1,skill:item.skill,label:item.label};
   return null;
 }
 function recordWrong(step){
@@ -1407,6 +1454,7 @@ function recordWrong(step){
   if(!me.wrongBank.some(x=>x._key===key)){ me.wrongBank.push(Object.assign({t:new Date().toISOString()},item)); try{saveJSON(LS_REC,records);}catch(e){} }
 }
 function markWrong(advance,msg){
+  L.combo=0; renderCombo();
   const step=L.steps[L.si];
   trackSkill(step.skill,false); trackWord(step,false);
   sndWrong();
@@ -1427,6 +1475,7 @@ function checkActivity(){
   if(step.type==='fill') checkFill(step);
   else if(step.type==='spell'||step.type==='typeword'){ if(spellCheckNow())markCorrect(); else markWrong(softRetryActive()); }
   else if(step.type==='sort') checkSort(step);
+  else if(step.type==='match') checkMatch(step);
   else if(step.type==='order') checkOrder(step);
   else if(step.type==='writing') checkWriting(step);
 }
@@ -1444,6 +1493,7 @@ function renderStep(){
   else if(step.type==='spell') renderLessonSpell(step,body);
   else if(step.type==='typeword') renderLessonType(step,body);
   else if(step.type==='sort') renderSortStep(step,body);
+  else if(step.type==='match') renderMatchStep(step,body);
   else if(step.type==='order') renderOrderStep(step,body);
   else if(step.type==='read') renderReadStep(step,body);
   else if(step.type==='writing') renderWritingStep(step,body);
@@ -1846,8 +1896,8 @@ function radarSVG(scores){
     +'<polygon points="'+data.join(' ')+'" fill="url(#rg)" fill-opacity="0.35" stroke="#7c3aed" stroke-width="2.5"/>'
     +dots+labels+'</svg>';
 }
-const PART_LABEL={"spelling": "拼寫（串字大師）", "shops": "商店（shops）", "phrasal": "片語動詞（phrasal verbs）", "negative": "否定句", "goodat": "擅長（good at + ing）", "reading": "閱讀"};
-const SKILL_TIP={"spelling": "用「拆字法＋phonics」，去「🔤 串字大師」逐個字練。", "shops": "bakery 麵包店、chemist 藥房、supermarket 超市、cinema 戲院、library 圖書館。", "phrasal": "stand up 站起、listen to 聽、look at 睇、put on 著、take off 除、pick up 拾起、clean up 清理、turn off 關。", "negative": "用 don't / doesn't / isn't / aren't 造否定句。", "goodat": "good at + 動詞 -ing（drawing / swimming）。", "reading": "答題前先 highlight 關鍵字，再用完整句子答。"};
+const PART_LABEL={"spelling": "拼寫（串字大師）", "hobbies": "嗜好（-ing）", "link": "and / or / but", "because": "why / because", "goodat": "good at", "reading": "閱讀"};
+const SKILL_TIP={"spelling": "用「拆字法＋phonics」，去「🔤 串字大師」逐個字練。", "hobbies": "like / enjoy + -ing：I like swimming.", "link": "and 加、or 或、but 但。", "because": "Why…? — Because…", "goodat": "good at + -ing：good at drawing。", "reading": "答題前先 highlight 關鍵字，再用完整句子答。"};
 function buildDetailedFeedback(r){
   const sk=r.skills||{};
   const rows=SKILLS.map(s=>{ const d=sk[s.id]; return {s:s,p:(d&&d.t)?Math.round(d.c/d.t*100):null,d:d}; });
@@ -2041,6 +2091,110 @@ function init(){
   cloudLoadPw();
 }
 document.addEventListener('DOMContentLoaded',init);
+</script>
+<script>
+
+/* ---- Avatar 金幣商店 ---- */
+const AVATARS=[{e:'🐱',c:0},{e:'🐶',c:0},{e:'🐼',c:20},{e:'🦊',c:20},{e:'🦁',c:40},{e:'🐸',c:40},{e:'🐧',c:60},{e:'🦄',c:80},{e:'🐲',c:100},{e:'🤖',c:120},{e:'👾',c:150},{e:'🌟',c:200}];
+function openShop(){
+  const me=getMe();
+  document.getElementById('shopCoins').textContent=me.coins||0;
+  document.getElementById('shopItems').innerHTML=AVATARS.map(a=>'<button class="shop-item" style="font-size:26px;padding:8px;border-radius:12px;border:2px solid '+(me.avatar===a.e?'#10b981':'#ece7da')+';background:#fff;cursor:pointer" onclick="buyAvatar(\''+a.e+'\','+a.c+')">'+a.e+'<div style="font-size:10px">'+(a.c?a.c+'🪙':'免費')+'</div></button>').join('');
+  document.getElementById('shopModal').classList.remove('hidden');
+}
+function closeShop(){ document.getElementById('shopModal').classList.add('hidden'); }
+function buyAvatar(e,c){
+  const me=getMe();
+  if((me.coins||0)<c){ toast('金幣唔夠，去完成關卡賺金幣啦！'); return; }
+  me.coins-=c; me.avatar=e; saveMe(me);
+  document.getElementById('pathAvatar').textContent=e;
+  document.getElementById('pathCoins').textContent=me.coins;
+  openShop(); toast('換咗新造型！');
+}
+
+</script>
+<script>
+
+/* ---- Phase 2：streak / 每日任務 / 排行榜 ---- */
+const MISSIONS=[{t:'完成 1 個關卡',need:1,k:'lvl',reward:20},{t:'完成 3 個關卡',need:3,k:'lvl',reward:50},{t:'賺 50 金幣',need:50,k:'coin',reward:30}];
+function ymd(off){ const d=new Date(); if(off)d.setDate(d.getDate()+off); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function tickStreak(){
+  const me=getMe(); const t=ymd();
+  if(me.lastDay===t) return;
+  const y=ymd(-1);
+  me.streak=(me.lastDay===y)?((me.streak||0)+1):1;
+  me.lastDay=t; me.bestStreak=Math.max(me.bestStreak||0,me.streak);
+  saveMe(me); updateStreakUI();
+}
+function updateStreakUI(){ const el=document.getElementById('pathStreak'); if(el)el.textContent=getMe().streak||0; }
+function bumpMissions(lvlInc, coinInc){
+  const me=getMe(); const today=ymd();
+  if(!me.m || me.m.d!==today){ me.m={d:today,lvl:0,coin:0,r:[0,0,0]}; }
+  me.m.lvl=(me.m.lvl||0)+lvlInc; me.m.coin=(me.m.coin||0)+coinInc;
+  if(!me.m.r) me.m.r=[0,0,0];
+  MISSIONS.forEach((ms,i)=>{ if(!me.m.r[i] && (me.m[ms.k]||0)>=ms.need){ me.m.r[i]=1; me.coins=(me.coins||0)+ms.reward; toast('🎁 完成每日任務：'+ms.t+'　+'+ms.reward+' 🪙'); } });
+  saveMe(me);
+}
+function openMissions(){ renderMissions(); document.getElementById('missionModal').classList.remove('hidden'); }
+function closeMissions(){ document.getElementById('missionModal').classList.add('hidden'); }
+function renderMissions(){
+  const me=getMe(); const today=ymd();
+  if(!me.m || me.m.d!==today){ me.m={d:today,lvl:0,coin:0,r:[0,0,0]}; }
+  document.getElementById('missionBody').innerHTML=MISSIONS.map((ms,i)=>{
+    const p=Math.min(100,Math.round(((me.m[ms.k]||0)/ms.need)*100)); const done=me.m.r[i];
+    return '<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:13px"><span>'+(done?'✅ ':'')+ms.t+'　+'+ms.reward+'🪙</span><span>'+Math.min(me.m[ms.k]||0,ms.need)+'/'+ms.need+'</span></div><div style="height:8px;background:#ece7da;border-radius:999px;overflow:hidden"><div style="width:'+p+'%;height:100%;background:'+(done?'#10b981':'#ff9f1c')+'"></div></div></div>';
+  }).join('');
+}
+async function openLeaderboard(){
+  document.getElementById('leaderboardModal').classList.remove('hidden');
+  document.getElementById('lbBody').innerHTML='<div style="text-align:center;padding:20px">載入中…</div>';
+  const cloud=await cloudFetchAll(); const me=getMe();
+  let rows=[];
+  Object.keys(cloud).forEach(n=>{ const r=cloud[n]; if(r&&r.n) rows.push({n:r.n,stars:r.stars||0,coins:r.coins||0}); });
+  if(!rows.some(r=>r.n===currentName)) rows.push({n:currentName,stars:me.stars||0,coins:me.coins||0});
+  rows.sort((a,b)=>(b.stars-a.stars)||(b.coins-a.coins));
+  const top=rows.slice(0,10);
+  const medal=['🥇','🥈','🥉'];
+  document.getElementById('lbBody').innerHTML='<table style="width:100%;border-collapse:collapse;font-size:14px">'+top.map((r,i)=>'<tr'+(r.n===currentName?' style="background:#eaf7f0"':'')+'><td style="padding:6px">'+(medal[i]||(i+1))+'</td><td>'+esc(r.n)+(r.n===currentName?'（你）':'')+'</td><td style="text-align:right">⭐'+r.stars+'</td><td style="text-align:right">🪙'+r.coins+'</td></tr>').join('')+'</table>';
+}
+function closeLeaderboard(){ document.getElementById('leaderboardModal').classList.add('hidden'); }
+
+</script>
+<script>
+
+/* ---- 配對題型 ---- */
+let _match=null;
+function renderMatchStep(step,body){
+  const act=step.act;
+  const right=act.pairs.map((p,i)=>({t:p.b,i:i})).sort(()=>Math.random()-0.5);
+  _match={pairs:act.pairs,right:right,picks:{},selL:null};
+  let h='<div class="match-title">'+esc(act.title||'配對：撳左邊再撳右邊')+'</div><div class="match-grid">';
+  h+='<div class="match-col">'+act.pairs.map((p,i)=>'<button class="match-btn" id="ml'+i+'" onclick="matchTapL('+i+')">'+esc(p.a)+'</button>').join('')+'</div>';
+  h+='<div class="match-col">'+right.map((x,j)=>'<button class="match-btn" id="mr'+j+'" onclick="matchTapR('+j+')">'+esc(x.t)+'</button>').join('')+'</div>';
+  h+='</div>';
+  body.innerHTML=h;
+}
+function matchTapL(i){ _match.selL=i; document.querySelectorAll('.match-col:first-child .match-btn').forEach((b,k)=>b.classList.toggle('sel',k===i)); sndClick(); }
+function matchTapR(j){
+  if(_match.selL==null){ toast('先撳左邊一個，再撳右邊一個'); return; }
+  Object.keys(_match.picks).forEach(l=>{ if(_match.picks[l]===j) delete _match.picks[l]; });
+  _match.picks[_match.selL]=j; _match.selL=null; sndClick(); renderMatchPicks();
+}
+function renderMatchPicks(){
+  document.querySelectorAll('.match-col:first-child .match-btn').forEach((b,k)=>{ const has=_match.picks[k]!=null; b.classList.toggle('paired',has); b.classList.remove('sel'); });
+  document.querySelectorAll('.match-col:nth-child(2) .match-btn').forEach((b,j)=>{ const used=Object.values(_match.picks).indexOf(j)>=0; b.classList.toggle('paired',used); });
+}
+function checkMatch(){
+  let ok=true;
+  _match.pairs.forEach((p,i)=>{ const j=_match.picks[i]; if(j==null) ok=false; else if(_match.right[j].i!==i) ok=false; });
+  if(ok) markCorrect(); else markWrong(softRetryActive());
+}
+
+</script>
+<script>
+
+function renderCombo(){ const el=document.getElementById('comboBadge'); if(!el)return; const c=(L&&L.combo)||0; if(c>=2){ el.textContent='🔥 x'+c; el.classList.add('on'); } else { el.classList.remove('on'); } }
+
 </script>
 </body>
 </html>
