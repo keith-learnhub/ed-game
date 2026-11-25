@@ -392,7 +392,7 @@ footer{text-align:center;color:var(--ink-soft);font-size:12px;margin-top:26px}
       </div>
       <div class="progress"><div class="fill" id="pathBarFill" style="width:0%"></div></div>
     </div>
-    <div class="mini-btns"><button class="btn btn-ghost" style="font-size:12px;padding:7px 12px" onclick="openMissions()">📅 每日任務</button><button class="btn btn-ghost" style="font-size:12px;padding:7px 12px" onclick="openLeaderboard()">🏆 排行榜</button></div>
+    <div class="mini-btns"><button class="btn btn-ghost" style="font-size:12px;padding:7px 12px" onclick="openMissions()">📅 每日任務</button><button class="btn btn-ghost" style="font-size:12px;padding:7px 12px" onclick="openLeaderboard()">🏆 排行榜</button><button class="btn btn-ghost" style="font-size:12px;padding:7px 12px" onclick="openShop()">🛒 商店</button></div>
     <div class="path" id="pathWrap"><div class="path-line"></div></div>
   </div>
 
@@ -463,21 +463,23 @@ footer{text-align:center;color:var(--ink-soft);font-size:12px;margin-top:26px}
 </div>
 
 
-<div class="modal-bg hidden" id="shopModal">
+<div class="modal-bg" id="shopModal" style="z-index:70">
   <div class="modal">
     <div style="font-size:42px">🛒</div>
     <h3>換造型（金幣商店）</h3>
     <div style="font-size:12px;color:#888;margin:4px 0 10px">你而家有 🪙 <b id="shopCoins">0</b> 金幣。完成關卡賺金幣，用嚟換角色造型！</div>
     <div id="shopItems" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px"></div>
+    <div style="font-weight:800;margin:14px 0 6px">🛠️ 道具（遊戲中用）</div>
+    <div id="shopTools" style="display:grid;grid-template-columns:1fr;gap:8px"></div>
     <div class="row" style="margin-top:12px"><button class="btn btn-ghost" style="flex:1" onclick="closeShop()">關閉</button></div>
   </div>
 </div>
 
 
-<div class="modal-bg hidden" id="missionModal">
+<div class="modal-bg" id="missionModal">
   <div class="modal"><div style="font-size:40px">📅</div><h3>每日任務</h3><div style="font-size:12px;color:#888;margin:4px 0 10px">每日重置，完成任務賺金幣！</div><div id="missionBody"></div><div class="row" style="margin-top:12px"><button class="btn btn-ghost" style="flex:1" onclick="closeMissions()">關閉</button></div></div>
 </div>
-<div class="modal-bg hidden" id="leaderboardModal">
+<div class="modal-bg" id="leaderboardModal">
   <div class="modal"><div style="font-size:40px">🏆</div><h3>排行榜</h3><div style="font-size:12px;color:#888;margin:4px 0 10px">本遊戲頭 10 名（按⭐＋🪙）</div><div id="lbBody"></div><div class="row" style="margin-top:12px"><button class="btn btn-ghost" style="flex:1" onclick="closeLeaderboard()">關閉</button></div></div>
 </div>
 
@@ -508,7 +510,7 @@ footer{text-align:center;color:var(--ink-soft);font-size:12px;margin-top:26px}
 <div class="modal-bg" id="lessonModal">
   <div class="modal lesson">
     <div class="lesson-top">
-      <button class="lesson-quit" onclick="quitLesson()">✕</button>
+      <button class="lesson-quit" onclick="quitLesson()">✕</button><button class="lesson-quit" onclick="openShop()" title="商店" style="font-size:17px">🛒</button>
       <div class="lesson-hearts" id="lessonHearts">❤️❤️❤️</div>
       <div class="combo-badge" id="comboBadge">🔥 x0</div>
       <div class="progress-dots" id="lessonDots"></div>
@@ -858,7 +860,7 @@ function recLevel(levelId,pct,starsParam){
   const best=prev?Math.max(prev.p||0,pct):pct;
   const bestStars=prev?Math.max(prev.s||0,lvStars):lvStars;
   me.L[levelId]={s:bestStars,p:best,t:new Date().toISOString()};
-  if(!prev){ const gain=levelId==='final'?100:(10+bestStars*10); me.coins=(me.coins||0)+gain; bumpMissions(levelId==='final'?2:1, gain); }
+  if(!prev){ let gain=levelId==='final'?100:(10+bestStars*10); if(me.boost2x){ gain*=2; me.boost2x=false; toast('💰 雙倍金幣！+'+gain); } me.coins=(me.coins||0)+gain; bumpMissions(levelId==='final'?2:1, gain); }
   /* 重新彙總 */
   let stars=0,xp=0,done=0;
   Object.keys(me.L).forEach(k=>{ if(k!=='final'){ stars+=me.L[k].s; xp+=me.L[k].p>=50? (10+me.L[k].s*10):5; if(me.L[k].s>0)done++; } });
@@ -2094,13 +2096,8 @@ document.addEventListener('DOMContentLoaded',init);
 
 /* ---- Avatar 金幣商店 ---- */
 const AVATARS=[{e:'🐱',c:0},{e:'🐶',c:0},{e:'🐼',c:20},{e:'🦊',c:20},{e:'🦁',c:40},{e:'🐸',c:40},{e:'🐧',c:60},{e:'🦄',c:80},{e:'🐲',c:100},{e:'🤖',c:120},{e:'👾',c:150},{e:'🌟',c:200}];
-function openShop(){
-  const me=getMe();
-  document.getElementById('shopCoins').textContent=me.coins||0;
-  document.getElementById('shopItems').innerHTML=AVATARS.map(a=>'<button class="shop-item" style="font-size:26px;padding:8px;border-radius:12px;border:2px solid '+(me.avatar===a.e?'#10b981':'#ece7da')+';background:#fff;cursor:pointer" onclick="buyAvatar(\''+a.e+'\','+a.c+')">'+a.e+'<div style="font-size:10px">'+(a.c?a.c+'🪙':'免費')+'</div></button>').join('');
-  document.getElementById('shopModal').classList.remove('hidden');
-}
-function closeShop(){ document.getElementById('shopModal').classList.add('hidden'); }
+function openShop(){ renderShop(); document.getElementById('shopModal').classList.add('show'); }
+function closeShop(){ document.getElementById('shopModal').classList.remove('show'); }
 function buyAvatar(e,c){
   const me=getMe();
   if((me.coins||0)<c){ toast('金幣唔夠，去完成關卡賺金幣啦！'); return; }
@@ -2133,8 +2130,8 @@ function bumpMissions(lvlInc, coinInc){
   MISSIONS.forEach((ms,i)=>{ if(!me.m.r[i] && (me.m[ms.k]||0)>=ms.need){ me.m.r[i]=1; me.coins=(me.coins||0)+ms.reward; toast('🎁 完成每日任務：'+ms.t+'　+'+ms.reward+' 🪙'); } });
   saveMe(me);
 }
-function openMissions(){ renderMissions(); document.getElementById('missionModal').classList.remove('hidden'); }
-function closeMissions(){ document.getElementById('missionModal').classList.add('hidden'); }
+function openMissions(){ renderMissions(); document.getElementById('missionModal').classList.add('show'); }
+function closeMissions(){ document.getElementById('missionModal').classList.remove('show'); }
 function renderMissions(){
   const me=getMe(); const today=ymd();
   if(!me.m || me.m.d!==today){ me.m={d:today,lvl:0,coin:0,r:[0,0,0]}; }
@@ -2144,7 +2141,7 @@ function renderMissions(){
   }).join('');
 }
 async function openLeaderboard(){
-  document.getElementById('leaderboardModal').classList.remove('hidden');
+  document.getElementById('leaderboardModal').classList.add('show');
   document.getElementById('lbBody').innerHTML='<div style="text-align:center;padding:20px">載入中…</div>';
   const cloud=await cloudFetchAll(); const me=getMe();
   let rows=[];
@@ -2155,7 +2152,7 @@ async function openLeaderboard(){
   const medal=['🥇','🥈','🥉'];
   document.getElementById('lbBody').innerHTML='<table style="width:100%;border-collapse:collapse;font-size:14px">'+top.map((r,i)=>'<tr'+(r.n===currentName?' style="background:#eaf7f0"':'')+'><td style="padding:6px">'+(medal[i]||(i+1))+'</td><td>'+esc(r.n)+(r.n===currentName?'（你）':'')+'</td><td style="text-align:right">⭐'+r.stars+'</td><td style="text-align:right">🪙'+r.coins+'</td></tr>').join('')+'</table>';
 }
-function closeLeaderboard(){ document.getElementById('leaderboardModal').classList.add('hidden'); }
+function closeLeaderboard(){ document.getElementById('leaderboardModal').classList.remove('show'); }
 
 </script>
 <script>
@@ -2260,5 +2257,41 @@ function renderCombo(){ const el=document.getElementById('comboBadge'); if(!el)r
 })();
 </script>
 
+<script>
+
+/* ---- 商店道具（Roblox 式） ---- */
+var SHOP_TOOLS=[
+ {id:'hearts',e:'❤️',name:'補滿心心',desc:'遊戲中用完心心可補滿 3 顆',cost:30},
+ {id:'skip',e:'⏭️',name:'跳過本題',desc:'跳過目前這題（唔扣心心）',cost:50},
+ {id:'x2',e:'💰',name:'雙倍金幣',desc:'下一個完成嘅關卡金幣 x2',cost:40}
+];
+function renderShop(){
+  var me=getMe();
+  var sc=document.getElementById('shopCoins'); if(sc) sc.textContent=me.coins||0;
+  var si=document.getElementById('shopItems');
+  if(si) si.innerHTML=AVATARS.map(function(a){ return '<button class="shop-item" style="font-size:26px;padding:8px;border-radius:12px;border:2px solid '+(me.avatar===a.e?'#10b981':'#ece7da')+';background:#fff;cursor:pointer" onclick="buyAvatar(\''+a.e+'\','+a.c+')">'+a.e+'<div style="font-size:10px">'+(a.c?a.c+'🪙':'免費')+'</div></button>'; }).join('');
+  var st=document.getElementById('shopTools');
+  if(st) st.innerHTML=SHOP_TOOLS.map(function(t){ return '<button onclick="buyTool(\''+t.id+'\')" style="display:flex;align-items:center;gap:10px;text-align:left;border:2px solid #ece7da;border-radius:14px;padding:10px;background:#fff;cursor:pointer;width:100%"><span style="font-size:26px">'+t.e+'</span><span style="flex:1"><b>'+t.name+'</b><br><span style="font-size:11px;color:#888">'+t.desc+'</span></span><span style="font-weight:800;color:#f59e0b;white-space:nowrap">'+t.cost+'🪙</span></button>'; }).join('');
+}
+function buyTool(id){
+  var me=getMe(); var t=null;
+  for(var i=0;i<SHOP_TOOLS.length;i++){ if(SHOP_TOOLS[i].id===id) t=SHOP_TOOLS[i]; }
+  if(!t) return;
+  if((me.coins||0)<t.cost){ toast('金幣唔夠！完成關卡賺金幣啦'); return; }
+  if(id==='hearts'){
+    if(typeof L==='undefined'||!L){ toast('要喺關卡入面先用得'); return; }
+    if(L.hearts>=3){ toast('心心已經滿咗'); return; }
+    me.coins-=t.cost; saveMe(me); L.hearts=3; renderHearts(); toast('❤️ 心心補滿！'); renderShop(); return;
+  }
+  if(id==='skip'){
+    if(typeof L==='undefined'||!L){ toast('要喺關卡入面先用得'); return; }
+    me.coins-=t.cost; saveMe(me); toast('⏭️ 已跳過本題'); nextActivity(); renderShop(); return;
+  }
+  if(id==='x2'){
+    me.coins-=t.cost; me.boost2x=true; saveMe(me); toast('💰 下一個關卡雙倍金幣！'); renderShop(); return;
+  }
+}
+
+</script>
 </body>
 </html>
