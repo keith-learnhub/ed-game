@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<meta name="site-build" content="v25-20261126-0200">
+<meta name="site-build" content="v26-20261126-0230">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0aa06e">
@@ -2200,33 +2200,38 @@ function renderMissions(){
 /* 150 個香港中文名學生（填充排行榜） */
 const SEED_NAMES=["陳志明","陳家欣","陳俊傑","陳慧敏","陳子軒","李詠詩","李浩賢","李芷晴","李嘉俊","李美玲","張國強","張麗華","張偉雄","張淑芬","張文傑","黃靜儀","黃建華","黃淑貞","黃德華","黃嘉玲","王子健","王佩珊","王俊熙","王樂怡","王浩然","林心怡","林天佑","林曉彤","林宇軒","林思雅","吳俊文","吳穎詩","吳智恆","吳嘉敏","吳柏謙","劉紫晴","劉霆鋒","劉詠琪","劉志豪","劉珮盈","蔡卓謙","蔡詩雅","蔡浚熙","蔡靖怡","蔡浩銘","楊欣桐","楊子朗","楊凱琳","楊明軒","楊若琳","許志明","許家欣","許俊傑","許慧敏","許子軒","鄭詠詩","鄭浩賢","鄭芷晴","鄭嘉俊","鄭美玲","謝國強","謝麗華","謝偉雄","謝淑芬","謝文傑","郭靜儀","郭建華","郭淑貞","郭德華","郭嘉玲","洪子健","洪佩珊","洪俊熙","洪樂怡","洪浩然","邱心怡","邱天佑","邱曉彤","邱宇軒","邱思雅","曾俊文","曾穎詩","曾智恆","曾嘉敏","曾柏謙","廖紫晴","廖霆鋒","廖詠琪","廖志豪","廖珮盈","賴卓謙","賴詩雅","賴浚熙","賴靖怡","賴浩銘","徐欣桐","徐子朗","徐凱琳","徐明軒","徐若琳","周志明","周家欣","周俊傑","周慧敏","周子軒","葉詠詩","葉浩賢","葉芷晴","葉嘉俊","葉美玲","蘇國強","蘇麗華","蘇偉雄","蘇淑芬","蘇文傑","莊靜儀","莊建華","莊淑貞","莊德華","莊嘉玲","呂子健","呂佩珊","呂俊熙","呂樂怡","呂浩然","江心怡","江天佑","江曉彤","江宇軒","江思雅","何俊文","何穎詩","何智恆","何嘉敏","何柏謙","羅紫晴","羅霆鋒","羅詠琪","羅志豪","羅珮盈","高卓謙","高詩雅","高浚熙","高靖怡","高浩銘","蕭欣桐","蕭子朗","蕭凱琳","蕭明軒","蕭若琳"];
 function seedHash(s){ let h=0; for(let i=0;i<s.length;i++){ h=(h*31+s.charCodeAt(i))>>>0; } return h; }
+function seedStat(n, total){
+  var h=seedHash(n+'_'+total);
+  var pct=((h%1000)+(seedHash(n+'_b')%1000)+(seedHash(n+'_c')%1000))/3000;
+  var done=Math.round(pct*total); done=Math.max(0,Math.min(total,done));
+  var maxS=done*3; var stars=Math.max(0,Math.min(maxS,maxS-(h%3)));
+  var xp=done*10+stars*10;
+  var coins=xp+(h%6)*10;
+  var daysAgo=(h%28)+1;
+  return {n:n,done:done,stars:stars,xp:xp,coins:coins,t:new Date(Date.now()-daysAgo*86400000).toISOString(),streak:h%6};
+}
 function seedRows(){
-  const out=[];
-  for(let i=0;i<SEED_NAMES.length;i++){
-    const h=seedHash(SEED_NAMES[i]+'_'+(typeof LEVELS!=='undefined'?LEVELS.length:6));
-    const stars=h%22;
-    const coins=(h*13)%300 + stars*5;
-    out.push({n:SEED_NAMES[i], stars:stars, coins:coins});
+  var total=(typeof LEVELS!=='undefined'?LEVELS.length:6);
+  var out=[];
+  for(var i=0;i<SEED_NAMES.length;i++){
+    var st=seedStat(SEED_NAMES[i],total);
+    out.push({n:st.n,stars:st.stars,coins:st.coins});
   }
   return out;
 }
 
 function seedRecords(){
   try{
-    if(localStorage.getItem('sw_seeded_'+LEVELS.length)) return;
+    if(localStorage.getItem('sw_seeded_v2_'+LEVELS.length)) return;
     var total=LEVELS.length;
     for(var i=0;i<SEED_NAMES.length;i++){
-      var n=SEED_NAMES[i];
-      if(records[n]) continue;
-      var h=seedHash(n+'_'+total);
-      var done=h%(total+1);
-      var stars=Math.min(done*3, (h>>>3)%(done*3+1));
-      var xp=stars*8+(h%20);
-      records[n]={n:n,xp:xp,stars:stars,done:done,coins:(h*13)%300+stars*5,t:new Date(Date.now()-((h%40)+1)*3600000).toISOString(),L:{},skills:{},wrongBank:[],writing:null,avatar:'🐱',streak:h%5};
+      var st=seedStat(SEED_NAMES[i],total);
+      if(records[st.n]) continue;
+      records[st.n]={n:st.n,xp:st.xp,stars:st.stars,done:st.done,coins:st.coins,t:st.t,L:{},skills:{},wrongBank:[],writing:null,avatar:'🐱',streak:st.streak};
     }
     saveJSON(LS_REC,records);
   }catch(e){}
-  try{ localStorage.setItem('sw_seeded_'+LEVELS.length,'1'); }catch(e){}
+  try{ localStorage.setItem('sw_seeded_v2_'+LEVELS.length,'1'); }catch(e){}
 }
 
 async function openLeaderboard(){
