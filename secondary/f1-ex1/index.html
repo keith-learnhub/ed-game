@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<meta name="site-build" content="v13-20261125-2015">
+<meta name="site-build" content="v15-20261125-2045">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0aa06e">
@@ -363,7 +363,7 @@ footer{text-align:center;color:var(--ink-soft);font-size:12px;margin-top:26px}
 .sw-notice-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#10b981,#118ab2);animation:swTeachBar 4s linear forwards}
 .sw-notice-tip{font-size:11px;color:#888}
 .sw-notice-btn{margin-top:10px;border:none;background:#0aa06e;color:#fff;font-weight:800;border-radius:14px;padding:10px 20px;cursor:pointer;font-size:15px}
-</style>
+.gc{display:inline-block;width:13px;height:13px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffe680,#f5b301 65%,#c98a00);border:1px solid #b07d00;vertical-align:-2px;box-shadow:inset 0 1px 1px rgba(255,255,255,.8);margin:0 1px}</style>
 </head>
 <body>
 <header>
@@ -400,7 +400,7 @@ footer{text-align:center;color:var(--ink-soft);font-size:12px;margin-top:26px}
           <div style="font-weight:800;font-size:17px">Level 地圖</div>
           <div style="font-size:12px;color:var(--ink-soft)">完成關卡攞星星，解鎖下一關！</div>
         </div>
-        <div class="xp">🔥 <span id="pathStreak">0</span>　🪙 <span id="pathCoins">0</span>　⭐ <span id="pathStars">0</span>/<span id="pathStarsMax">0</span>　<button class="avatar-btn" id="pathAvatar" onclick="openShop()" title="換造型">🐱</button></div>
+        <div class="xp">🔥 <span id="pathStreak">0</span>　<i class="gc"></i> <span id="pathCoins">0</span>　⭐ <span id="pathStars">0</span>/<span id="pathStarsMax">0</span>　<button class="avatar-btn" id="pathAvatar" onclick="openShop()" title="換造型">🐱</button></div>
       </div>
       <div class="progress"><div class="fill" id="pathBarFill" style="width:0%"></div></div>
     </div>
@@ -480,7 +480,7 @@ footer{text-align:center;color:var(--ink-soft);font-size:12px;margin-top:26px}
   <div class="modal">
     <div style="font-size:42px">🛒</div>
     <h3>換造型（金幣商店）</h3>
-    <div style="font-size:12px;color:#888;margin:4px 0 10px">你而家有 🪙 <b id="shopCoins">0</b> 金幣。完成關卡賺金幣，用嚟換角色造型！</div>
+    <div style="font-size:12px;color:#888;margin:4px 0 10px">你而家有 <i class="gc"></i> <b id="shopCoins">0</b> 金幣。完成關卡賺金幣，用嚟換角色造型！</div>
     <div id="shopItems" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px"></div>
     <div style="font-weight:800;margin:14px 0 6px">🛠️ 道具（遊戲中用）</div>
     <div id="shopTools" style="display:grid;grid-template-columns:1fr;gap:8px"></div>
@@ -493,7 +493,7 @@ footer{text-align:center;color:var(--ink-soft);font-size:12px;margin-top:26px}
   <div class="modal"><div style="font-size:40px">📅</div><h3>每日任務</h3><div style="font-size:12px;color:#888;margin:4px 0 10px">每日重置，完成任務賺金幣！</div><div id="missionBody"></div><div class="row" style="margin-top:12px"><button class="btn btn-ghost" style="flex:1" onclick="closeMissions()">關閉</button></div></div>
 </div>
 <div class="modal-bg" id="leaderboardModal">
-  <div class="modal"><div style="font-size:40px">🏆</div><h3>排行榜</h3><div style="font-size:12px;color:#888;margin:4px 0 10px">本遊戲頭 10 名（按⭐＋🪙）</div><div id="lbBody"></div><div class="row" style="margin-top:12px"><button class="btn btn-ghost" style="flex:1" onclick="closeLeaderboard()">關閉</button></div></div>
+  <div class="modal"><div style="font-size:40px">🏆</div><h3>排行榜</h3><div style="font-size:12px;color:#888;margin:4px 0 10px">本遊戲頭 10 名（按⭐＋<i class="gc"></i>）</div><div id="lbBody"></div><div class="row" style="margin-top:12px"><button class="btn btn-ghost" style="flex:1" onclick="closeLeaderboard()">關閉</button></div></div>
 </div>
 
 <!-- ============ 登入 modal ============ -->
@@ -607,7 +607,7 @@ const WORDS=[{"w": "famous", "cn": "著名", "ph": ["fa", "mous"], "hint": "fa-m
 const PHON_PATTERNS=['BL','CL','FL','GL','PL','SL','BR','CR','FR','GR','SR','PR','DR','TR','CH','SH','TH','WH','QU','CK','EE','OO','AR','OR','OY','OI','AL','LE','EL','NG','ING','Y','AI','AY','ER','UR','IR','EA','OW','OU','OA','UE','EW','IE','IGH','AW','AU','OLD','ILD','AIR','ARE'];
 
 /* 關卡（Duolingo 式）。acts = 活動序列 */
-const LEVELS=[{"id": "quant", "emoji": "🔢", "title": "量詞", "sub": "Quantifiers", "color": "col-purple", "acts": [{"type": "info", "title": "量詞", "html": "<div style=\"text-align:left\"><b>some</b> 肯定句、<b>any</b> 否定／問句；<b>much</b>＋不可數、<b>many</b>＋可數；<b>a lot of</b> 兩者都可用。</div>"}, {"type": "mcq", "title": "揀啱量詞", "qs": [{"q": "There isn't ______ milk.", "opts": ["any", "some", "many"], "ans": 0}, {"q": "I have ______ apples.", "opts": ["some", "any", "much"], "ans": 0}, {"q": "How ______ water do you need?", "opts": ["much", "many", "a lot"], "ans": 0}]}]}, {"id": "read2", "emoji": "📖", "title": "閱讀", "sub": "My Favourite Place", "color": "col-blue", "acts": [{"type": "read", "title": "閱讀理解：My Favourite Place", "passage": {"title": "My Favourite Place", "source": "A passage", "paras": ["My favourite place is the science museum. It is big and there are many interesting things to see.", "I usually go there with my friends on Saturday. We learn about robots and space.", "Last month, there was a special show. It was very exciting and I want to go again."], "keyWords": ["science museum", "friends", "robots", "space", "show", "exciting"], "qs": [{"type": "txt", "instr": "short", "q": "The show was very ______.", "ans": "exciting", "cap": false}, {"type": "mc", "q": "When does the writer usually go?", "opts": ["on Saturday", "on Monday", "on Friday", "on Sunday"], "ans": 0}, {"type": "mc", "q": "What is the writer's favourite place?", "opts": ["the science museum", "the beach", "the cinema", "the library"], "ans": 0}, {"type": "txt", "instr": "complete", "q": "What did they learn about?", "keys": ["robots", "space"], "need": 1, "model": "They learned about robots and space.", "cap": true}]}}]}, {"id": "prep", "emoji": "📍", "title": "介詞", "sub": "Prepositions", "color": "col-amber", "acts": [{"type": "info", "title": "介詞", "html": "<div style=\"text-align:left\">時間：<b>in</b> 月份／年份、<b>on</b> 日期、<b>at</b> 時間。地方：<b>in</b> 大地方、<b>on</b> 表面、<b>at</b> 細地方。</div>"}, {"type": "fill", "title": "填介詞", "qs": [{"q": "We have a party ______ Saturday.", "ans": "on"}, {"q": "The film starts ______ 7 o'clock.", "ans": "at"}, {"q": "I live ______ Hong Kong.", "ans": "in"}, {"q": "The book is ______ the desk.", "ans": "on"}]}]}, {"id": "tense", "emoji": "⏱️", "title": "時態", "sub": "Tenses", "color": "col-green", "acts": [{"type": "learn", "title": "學生字", "words": ["museum", "holiday", "delicious", "expensive"]}, {"type": "info", "title": "時態", "html": "<div style=\"text-align:left\"><b>現在式</b>：習慣／事實（She <b>goes</b> to school by bus.）｜<b>現在進行式</b>：做緊（Look! He <b>is running</b>.）｜<b>過去式</b>：過去（They <b>visited</b> the museum last week.）</div>"}, {"type": "fill", "title": "填動詞形式", "qs": [{"q": "She ______ (go) to school by bus every day.", "ans": "goes"}, {"q": "Look! He ______ (run).", "ans": "is running"}, {"q": "We ______ (have) a party yesterday.", "ans": "had"}, {"q": "They ______ (visit) the museum last week.", "ans": "visited"}]}, {"type": "mcq", "title": "揀啱時態", "qs": [{"q": "She ______ a book now.", "opts": ["is reading", "reads", "read"], "ans": 0}, {"q": "I ______ to the park every Sunday.", "opts": ["go", "am going", "went"], "ans": 0}]}]}, {"id": "read1", "emoji": "📖", "title": "閱讀", "sub": "A Trip to the Beach", "color": "col-blue", "acts": [{"type": "read", "title": "閱讀理解：A Trip to the Beach", "passage": {"title": "A Trip to the Beach", "source": "A diary entry", "paras": ["Last weekend, my family went to the beach. The weather was sunny and the sea was blue.", "We swam in the sea and built a sandcastle. I bought a small souvenir for my friend.", "In the evening, we had a delicious seafood dinner. It was a wonderful holiday!"], "keyWords": ["beach", "sunny", "sea", "sandcastle", "souvenir", "delicious", "holiday"], "qs": [{"type": "mc", "q": "Where did the family go?", "opts": ["the beach", "the museum", "the park", "the zoo"], "ans": 0}, {"type": "mc", "q": "What did the writer buy?", "opts": ["a souvenir", "a book", "a hat", "a drink"], "ans": 0}, {"type": "txt", "instr": "complete", "q": "What did they do in the evening?", "keys": ["seafood", "dinner"], "need": 1, "model": "They had a delicious seafood dinner.", "cap": true}, {"type": "txt", "instr": "short", "q": "The weather was ______.", "ans": "sunny", "cap": false}]}}]}];
+const LEVELS=[{"id": "quant", "emoji": "🔢", "title": "量詞", "sub": "Quantifiers", "color": "col-purple", "acts": [{"type": "info", "title": "量詞", "html": "<div style=\"text-align:center;font-size:34px;line-height:1.6\">📦　💧</div><div style=\"text-align:center;font-size:15px;font-weight:800;margin-top:6px\">so many　so much</div><div style=\"text-align:center;font-size:12px;color:#888;margin-top:4px\">數量</div>"}, {"type": "mcq", "title": "揀啱量詞", "qs": [{"q": "There isn't ______ milk.", "opts": ["any", "some", "many"], "ans": 0}, {"q": "I have ______ apples.", "opts": ["some", "any", "much"], "ans": 0}, {"q": "How ______ water do you need?", "opts": ["much", "many", "a lot"], "ans": 0}]}]}, {"id": "read2", "emoji": "📖", "title": "閱讀", "sub": "My Favourite Place", "color": "col-blue", "acts": [{"type": "read", "title": "閱讀理解：My Favourite Place", "passage": {"title": "My Favourite Place", "source": "A passage", "paras": ["My favourite place is the science museum. It is big and there are many interesting things to see.", "I usually go there with my friends on Saturday. We learn about robots and space.", "Last month, there was a special show. It was very exciting and I want to go again."], "keyWords": ["science museum", "friends", "robots", "space", "show", "exciting"], "qs": [{"type": "txt", "instr": "short", "q": "The show was very ______.", "ans": "exciting", "cap": false}, {"type": "mc", "q": "When does the writer usually go?", "opts": ["on Saturday", "on Monday", "on Friday", "on Sunday"], "ans": 0}, {"type": "mc", "q": "What is the writer's favourite place?", "opts": ["the science museum", "the beach", "the cinema", "the library"], "ans": 0}, {"type": "txt", "instr": "complete", "q": "What did they learn about?", "keys": ["robots", "space"], "need": 1, "model": "They learned about robots and space.", "cap": true}]}}]}, {"id": "prep", "emoji": "📍", "title": "介詞", "sub": "Prepositions", "color": "col-amber", "acts": [{"type": "info", "title": "介詞", "html": "<div style=\"text-align:center;font-size:34px;line-height:1.6\">📍　🗺️</div><div style=\"text-align:center;font-size:15px;font-weight:800;margin-top:6px\">in　on　at</div><div style=\"text-align:center;font-size:12px;color:#888;margin-top:4px\">介詞</div>"}, {"type": "fill", "title": "填介詞", "qs": [{"q": "We have a party ______ Saturday.", "ans": "on"}, {"q": "The film starts ______ 7 o'clock.", "ans": "at"}, {"q": "I live ______ Hong Kong.", "ans": "in"}, {"q": "The book is ______ the desk.", "ans": "on"}]}]}, {"id": "tense", "emoji": "⏱️", "title": "時態", "sub": "Tenses", "color": "col-green", "acts": [{"type": "learn", "title": "學生字", "words": ["museum", "holiday", "delicious", "expensive"]}, {"type": "info", "title": "時態", "html": "<div style=\"text-align:center;font-size:34px;line-height:1.6\">📅　🏃　⏪</div><div style=\"text-align:center;font-size:15px;font-weight:800;margin-top:6px\">every day　now　yesterday</div><div style=\"text-align:center;font-size:12px;color:#888;margin-top:4px\">時態</div>"}, {"type": "fill", "title": "填動詞形式", "qs": [{"q": "She ______ (go) to school by bus every day.", "ans": "goes"}, {"q": "Look! He ______ (run).", "ans": "is running"}, {"q": "We ______ (have) a party yesterday.", "ans": "had"}, {"q": "They ______ (visit) the museum last week.", "ans": "visited"}]}, {"type": "mcq", "title": "揀啱時態", "qs": [{"q": "She ______ a book now.", "opts": ["is reading", "reads", "read"], "ans": 0}, {"q": "I ______ to the park every Sunday.", "opts": ["go", "am going", "went"], "ans": 0}]}]}, {"id": "read1", "emoji": "📖", "title": "閱讀", "sub": "A Trip to the Beach", "color": "col-blue", "acts": [{"type": "read", "title": "閱讀理解：A Trip to the Beach", "passage": {"title": "A Trip to the Beach", "source": "A diary entry", "paras": ["Last weekend, my family went to the beach. The weather was sunny and the sea was blue.", "We swam in the sea and built a sandcastle. I bought a small souvenir for my friend.", "In the evening, we had a delicious seafood dinner. It was a wonderful holiday!"], "keyWords": ["beach", "sunny", "sea", "sandcastle", "souvenir", "delicious", "holiday"], "qs": [{"type": "mc", "q": "Where did the family go?", "opts": ["the beach", "the museum", "the park", "the zoo"], "ans": 0}, {"type": "mc", "q": "What did the writer buy?", "opts": ["a souvenir", "a book", "a hat", "a drink"], "ans": 0}, {"type": "txt", "instr": "complete", "q": "What did they do in the evening?", "keys": ["seafood", "dinner"], "need": 1, "model": "They had a delicious seafood dinner.", "cap": true}, {"type": "txt", "instr": "short", "q": "The weather was ______.", "ans": "sunny", "cap": false}]}}]}];
 
 /* 畢業測驗（10 題混合） */
 const FINAL_QUIZ=[{"q": "The film starts ______ 7 o'clock.", "opts": ["at", "on", "in"], "ans": 0}, {"q": "I have ______ apples.", "opts": ["some", "any", "much"], "ans": 0}, {"q": "Where did the family go?", "opts": ["the beach", "the museum", "the park"], "ans": 0}, {"q": "How ______ water do you need?", "opts": ["much", "many", "a lot"], "ans": 0}, {"q": "She ______ to school by bus every day.", "opts": ["goes", "go", "going"], "ans": 0}, {"q": "Look! He ______.", "opts": ["is running", "runs", "ran"], "ans": 0}, {"q": "They ______ the museum last week.", "opts": ["visited", "visit", "visits"], "ans": 0}, {"q": "The show was very ______.", "opts": ["exciting", "excited", "excite"], "ans": 0}, {"q": "We have a party ______ Saturday.", "opts": ["on", "in", "at"], "ans": 0}, {"q": "There isn't ______ milk.", "opts": ["any", "some", "many"], "ans": 0}];
@@ -973,7 +973,7 @@ function renderPath(){
   /* 畢業測驗 */
   const finRec=(me.L&&me.L['final'])||null;
   const allDone=LEVELS.every((lv)=>me.L&&me.L[lv.id]&&me.L[lv.id].s>0);
-  html+='<div class="node'+(allDone?'':' locked')+'"><div class="bubble col-green" style="background:linear-gradient(135deg,#ff5e62,#c11f2e)" onclick="'+(allDone?'openFinal()':'toast(\'完成晒所有關卡先可以打大魔王！\')')+'"><span class="lv">👑</span>💩<span class="stars">'+starStr(finRec?finRec.s:0)+'</span></div><div class="meta"><div class="t">💩 屎王（大魔王）</div><div class="s">打敗屎王攞 100 🪙！</div></div></div>';
+  html+='<div class="node'+(allDone?'':' locked')+'"><div class="bubble col-green" style="background:linear-gradient(135deg,#ff5e62,#c11f2e)" onclick="'+(allDone?'openFinal()':'toast(\'完成晒所有關卡先可以打大魔王！\')')+'"><span class="lv">👑</span>💩<span class="stars">'+starStr(finRec?finRec.s:0)+'</span></div><div class="meta"><div class="t">💩 屎王（大魔王）</div><div class="s">打敗屎王攞 100 <i class="gc"></i>！</div></div></div>';
   wrap.innerHTML=html;
   document.getElementById('pathStars').textContent=me.stars||0;
   document.getElementById('pathStarsMax').textContent=(LEVELS.length+1)*3;
@@ -995,7 +995,7 @@ function openFinal(){
   pendingLevel='final';
   document.getElementById('levelIntroEmoji').textContent='💩';
   document.getElementById('levelIntroTitle').textContent='屎王（大魔王）';
-  document.getElementById('levelIntroDesc').textContent='答啱扣大魔王血！贏咗攞 100 🪙 大獎！';
+  document.getElementById('levelIntroDesc').textContent='答啱扣大魔王血！贏咗攞 100 金幣 大獎！';
   const rec=(getMe().L&&getMe().L['final'])||null;
   document.getElementById('levelIntroStars').textContent=starStr(rec?rec.s:0);
   document.getElementById('levelIntroModal').classList.add('show');
@@ -1425,7 +1425,7 @@ function loseHeart(){
   if(L.hearts<=0){ showFb('💔 冇心心喇，小老師教你！','no'); setTimeout(()=>showTeachNote(),700); return true; }
   return false;
 }
-function markCorrect(){ L.correct++; L.combo=(L.combo||0)+1; renderCombo(); if(L.combo>=5 && L.combo%5===0){ const me=getMe(); const bonus=10; me.coins=(me.coins||0)+bonus; saveMe(me); toast('🔥 '+L.combo+' 連擊！額外 +'+bonus+' 🪙'); } trackSkill(L.steps[L.si].skill,true); trackWord(L.steps[L.si],true); sndCorrect(); starBurst(); showFb('✅ 啱！','ok'); document.getElementById('lessonCheck').classList.add('hidden'); autoNext(); }
+function markCorrect(){ L.correct++; L.combo=(L.combo||0)+1; renderCombo(); if(L.combo>=5 && L.combo%5===0){ const me=getMe(); const bonus=10; me.coins=(me.coins||0)+bonus; saveMe(me); toast('🔥 '+L.combo+' 連擊！額外 +'+bonus+' 金幣'); } trackSkill(L.steps[L.si].skill,true); trackWord(L.steps[L.si],true); sndCorrect(); starBurst(); showFb('✅ 啱！','ok'); document.getElementById('lessonCheck').classList.add('hidden'); autoNext(); }
 /* 每題最多 2 個提示；2 次都唔啱就「留返下次」，並記入錯題庫 */
 function stepHint(step,n){
   if(!step)return '';
@@ -2142,7 +2142,7 @@ function bumpMissions(lvlInc, coinInc){
   if(!me.m || me.m.d!==today){ me.m={d:today,lvl:0,coin:0,r:[0,0,0]}; }
   me.m.lvl=(me.m.lvl||0)+lvlInc; me.m.coin=(me.m.coin||0)+coinInc;
   if(!me.m.r) me.m.r=[0,0,0];
-  MISSIONS.forEach((ms,i)=>{ if(!me.m.r[i] && (me.m[ms.k]||0)>=ms.need){ me.m.r[i]=1; me.coins=(me.coins||0)+ms.reward; toast('🎁 完成每日任務：'+ms.t+'　+'+ms.reward+' 🪙'); } });
+  MISSIONS.forEach((ms,i)=>{ if(!me.m.r[i] && (me.m[ms.k]||0)>=ms.need){ me.m.r[i]=1; me.coins=(me.coins||0)+ms.reward; toast('🎁 完成每日任務：'+ms.t+'　+'+ms.reward+' 金幣'); } });
   saveMe(me);
 }
 function openMissions(){ renderMissions(); document.getElementById('missionModal').classList.add('show'); }
@@ -2152,7 +2152,7 @@ function renderMissions(){
   if(!me.m || me.m.d!==today){ me.m={d:today,lvl:0,coin:0,r:[0,0,0]}; }
   document.getElementById('missionBody').innerHTML=MISSIONS.map((ms,i)=>{
     const p=Math.min(100,Math.round(((me.m[ms.k]||0)/ms.need)*100)); const done=me.m.r[i];
-    return '<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:13px"><span>'+(done?'✅ ':'')+ms.t+'　+'+ms.reward+'🪙</span><span>'+Math.min(me.m[ms.k]||0,ms.need)+'/'+ms.need+'</span></div><div style="height:8px;background:#ece7da;border-radius:999px;overflow:hidden"><div style="width:'+p+'%;height:100%;background:'+(done?'#10b981':'#ff9f1c')+'"></div></div></div>';
+    return '<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:13px"><span>'+(done?'✅ ':'')+ms.t+'　+'+ms.reward+'<i class="gc"></i></span><span>'+Math.min(me.m[ms.k]||0,ms.need)+'/'+ms.need+'</span></div><div style="height:8px;background:#ece7da;border-radius:999px;overflow:hidden"><div style="width:'+p+'%;height:100%;background:'+(done?'#10b981':'#ff9f1c')+'"></div></div></div>';
   }).join('');
 }
 async function openLeaderboard(){
@@ -2165,7 +2165,7 @@ async function openLeaderboard(){
   rows.sort((a,b)=>(b.stars-a.stars)||(b.coins-a.coins));
   const top=rows.slice(0,10);
   const medal=['🥇','🥈','🥉'];
-  document.getElementById('lbBody').innerHTML='<table style="width:100%;border-collapse:collapse;font-size:14px">'+top.map((r,i)=>'<tr'+(r.n===currentName?' style="background:#eaf7f0"':'')+'><td style="padding:6px">'+(medal[i]||(i+1))+'</td><td>'+esc(r.n)+(r.n===currentName?'（你）':'')+'</td><td style="text-align:right">⭐'+r.stars+'</td><td style="text-align:right">🪙'+r.coins+'</td></tr>').join('')+'</table>';
+  document.getElementById('lbBody').innerHTML='<table style="width:100%;border-collapse:collapse;font-size:14px">'+top.map((r,i)=>'<tr'+(r.n===currentName?' style="background:#eaf7f0"':'')+'><td style="padding:6px">'+(medal[i]||(i+1))+'</td><td>'+esc(r.n)+(r.n===currentName?'（你）':'')+'</td><td style="text-align:right">⭐'+r.stars+'</td><td style="text-align:right"><i class="gc"></i>'+r.coins+'</td></tr>').join('')+'</table>';
 }
 function closeLeaderboard(){ document.getElementById('leaderboardModal').classList.remove('show'); }
 
@@ -2218,10 +2218,6 @@ function renderCombo(){ const el=document.getElementById('comboBadge'); if(!el)r
 #lessonModal .modal.lesson .opt:hover{border-color:#10b981}
 #levelIntroModal .modal{animation:swPop .3s}
 </style>
-<script>
-(function(){ if(document.querySelector('.sw-mascot'))return; var p=document.createElement('div'); p.className='sw-mascot'; p.textContent='\ud83e\udd8a'; p.title='\u5433Sir \u5c0f\u72d0\u72f8'; p.onclick=function(){ var a=['\ud83e\udd8a','\ud83d\udc31','\ud83d\udc3c','\ud83e\udd81','\ud83d\udc38','\ud83d\udc27']; p.textContent=a[Math.floor(Math.random()*a.length)]; }; document.body.appendChild(p); })();
-</script>
-
 <script>
 (function(){
   if(window.__swWidget) return; window.__swWidget=1;
@@ -2284,9 +2280,9 @@ function renderShop(){
   var me=getMe();
   var sc=document.getElementById('shopCoins'); if(sc) sc.textContent=me.coins||0;
   var si=document.getElementById('shopItems');
-  if(si) si.innerHTML=AVATARS.map(function(a){ return '<button class="shop-item" style="font-size:26px;padding:8px;border-radius:12px;border:2px solid '+(me.avatar===a.e?'#10b981':'#ece7da')+';background:#fff;cursor:pointer" onclick="buyAvatar(\''+a.e+'\','+a.c+')">'+a.e+'<div style="font-size:10px">'+(a.c?a.c+'🪙':'免費')+'</div></button>'; }).join('');
+  if(si) si.innerHTML=AVATARS.map(function(a){ return '<button class="shop-item" style="font-size:26px;padding:8px;border-radius:12px;border:2px solid '+(me.avatar===a.e?'#10b981':'#ece7da')+';background:#fff;cursor:pointer" onclick="buyAvatar(\''+a.e+'\','+a.c+')">'+a.e+'<div style="font-size:10px">'+(a.c?a.c+'<i class="gc"></i>':'免費')+'</div></button>'; }).join('');
   var st=document.getElementById('shopTools');
-  if(st) st.innerHTML=SHOP_TOOLS.map(function(t){ return '<button onclick="buyTool(\''+t.id+'\')" style="display:flex;align-items:center;gap:10px;text-align:left;border:2px solid #ece7da;border-radius:14px;padding:10px;background:#fff;cursor:pointer;width:100%"><span style="font-size:26px">'+t.e+'</span><span style="flex:1"><b>'+t.name+'</b><br><span style="font-size:11px;color:#888">'+t.desc+'</span></span><span style="font-weight:800;color:#f59e0b;white-space:nowrap">'+t.cost+'🪙</span></button>'; }).join('');
+  if(st) st.innerHTML=SHOP_TOOLS.map(function(t){ return '<button onclick="buyTool(\''+t.id+'\')" style="display:flex;align-items:center;gap:10px;text-align:left;border:2px solid #ece7da;border-radius:14px;padding:10px;background:#fff;cursor:pointer;width:100%"><span style="font-size:26px">'+t.e+'</span><span style="flex:1"><b>'+t.name+'</b><br><span style="font-size:11px;color:#888">'+t.desc+'</span></span><span style="font-weight:800;color:#f59e0b;white-space:nowrap">'+t.cost+'<i class="gc"></i></span></button>'; }).join('');
 }
 function buyTool(id){
   var me=getMe(); var t=null;
@@ -2393,7 +2389,7 @@ function buyTool(id){
   window.swMiniGame=function(){
     if(document.querySelector('.sw-mini')) return;
     var ov=document.createElement('div'); ov.className='sw-mini';
-    ov.innerHTML='<div class="sw-mini-title">⭐ 星島小遊戲：金幣衝刺！</div><div class="sw-mini-sub">撳畫面／空白鍵跳起：食金幣 🪙、食星鑽 💎 回血、避岩石 🪨</div><canvas id="swCanvas" width="360" height="480"></canvas><button class="sw-mini-btn" onclick="swMiniClose()">跳過 ➜</button>';
+    ov.innerHTML='<div class="sw-mini-title">⭐ 星島小遊戲：金幣衝刺！</div><div class="sw-mini-sub">撳畫面／空白鍵跳起：食金幣 <i class="gc"></i>、食星鑽 💎 回血、避岩石 🪨</div><canvas id="swCanvas" width="360" height="480"></canvas><button class="sw-mini-btn" onclick="swMiniClose()">跳過 ➜</button>';
     document.body.appendChild(ov);
     var cv=ov.querySelector('#swCanvas'); if(!cv) return;
     var ctx=cv.getContext('2d'); var W=cv.width,H=cv.height,ground=H-70;
@@ -2411,9 +2407,9 @@ function buyTool(id){
       ctx.font='26px serif'; ctx.textAlign='center'; ctx.fillText('☁️',80,80); ctx.fillText('☁️',250,120);
       ctx.font='34px serif'; ctx.fillText('🦊',player.x+17,player.y+34);
       ctx.font='30px serif'; obstacles.forEach(function(o){ ctx.fillText('🪨',o.x+13,o.y+28); });
-      ctx.font='26px serif'; coins.forEach(function(c){ if(c.r>0) ctx.fillText(c.t==='m'?'💎':'🪙',c.x,c.y); });
+      ctx.font='26px serif'; coins.forEach(function(c){ if(c.r>0){ if(c.t==='m'){ ctx.font='26px serif'; ctx.fillText('💎',c.x,c.y); } else { ctx.beginPath(); ctx.arc(c.x,c.y-8,8,0,7); ctx.fillStyle='#f5b301'; ctx.fill(); ctx.strokeStyle='#b07d00'; ctx.lineWidth=2; ctx.stroke(); } } });
       ctx.fillStyle='#0f172a'; ctx.font='bold 15px sans-serif'; ctx.textAlign='left';
-      ctx.fillText('🪙 '+score+'   ❤️ '+hearts+'   ⏱ '+Math.floor(elapsed/1000)+'s',12,28);
+      ctx.beginPath(); ctx.arc(16,22,8,0,7); ctx.fillStyle='#f5b301'; ctx.fill(); ctx.strokeStyle='#b07d00'; ctx.lineWidth=2; ctx.stroke(); ctx.fillText(score+'   ❤️ '+hearts+'   ⏱ '+Math.floor(elapsed/1000)+'s',29,27);
     }
     function loop(now){
       if(!running) return;
@@ -2440,7 +2436,7 @@ function buyTool(id){
   window.swMiniClose=function(score){
     score=(typeof score==='number')?score:(window._swScore||0);
     var ov=document.querySelector('.sw-mini'); if(ov) ov.parentNode.removeChild(ov);
-    if(score>0){ try{ var me=getMe(); me.coins=(me.coins||0)+score; saveMe(me); toast('🎁 小遊戲獎勵 +'+score+' 🪙'); }catch(e){} }
+    if(score>0){ try{ var me=getMe(); me.coins=(me.coins||0)+score; saveMe(me); toast('🎁 小遊戲獎勵 +'+score+' 金幣'); }catch(e){} }
   };
 
   /* ---------- 掛鈎：過關後小遊戲 + 地圖故事 ---------- */
@@ -2460,8 +2456,6 @@ function buyTool(id){
   }catch(e){}
 })();
 </script>
-
-<div style="position:fixed;left:8px;top:8px;z-index:9999;background:#0f172a;color:#fff;font-size:10px;padding:3px 7px;border-radius:8px;opacity:.75;font-weight:700">v13-20261125-2015</div>
 
 <style>
 .vis-big{font-size:72px;text-align:center;line-height:1;margin:4px 0 8px}

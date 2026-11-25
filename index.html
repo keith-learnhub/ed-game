@@ -81,7 +81,7 @@ footer b{color:var(--green-d)}
 .modal textarea{height:90px;resize:vertical}
 .modal .row{display:flex;gap:8px}
 .modal .row button{flex:1;border:none;border-radius:10px;padding:10px;font-weight:800;cursor:pointer}
-</style>
+.gc{display:inline-block;width:13px;height:13px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffe680,#f5b301 65%,#c98a00);border:1px solid #b07d00;vertical-align:-2px;box-shadow:inset 0 1px 1px rgba(255,255,255,.8);margin:0 1px}</style>
 </head>
 <body>
 <header>
@@ -209,6 +209,5 @@ function closeReport(){ document.getElementById('reportModal').classList.add('hi
 function submitReport(){ const name=document.getElementById('repName').value.trim(); const game=document.getElementById('repGame').value; const text=document.getElementById('repText').value.trim(); if(!text){ alert('請輸入問題描述'); return; } const rec={name:name||'匿名',game:game,text:text,page:location.href,t:new Date().toISOString()}; try{ fetch(FB+'/feedback/reports.json',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(rec)}).then(()=>{ closeReport(); document.getElementById('repName').value=''; document.getElementById('repText').value=''; alert('✅ 已收到，多謝你嘅報告！'); }).catch(()=>{ alert('⚠️ 提交失敗，請檢查網絡後再試。'); }); }catch(e){ alert('⚠️ 提交失敗'); } }
 </script>
 
-<div style="position:fixed;left:8px;top:8px;z-index:9999;background:#0f172a;color:#fff;font-size:10px;padding:3px 7px;border-radius:8px;opacity:.75;font-weight:700">v13-20261125-2015</div>
 </body>
 </html>
