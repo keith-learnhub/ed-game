@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<meta name="site-build" content="v29-20261126-0340">
+<meta name="site-build" content="v30-20261126-0400">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0aa06e">
@@ -1715,7 +1715,7 @@ function gradeWriting(text, act){
   const words=countWords(text), paras=countParas(text), low=text.toLowerCase();
   const promptKeys=(act&&act.promptKeys)||[
     ['hobby','favourite','favorite','like','love','enjoy','play','read','swim','draw','sing','run','dance','cycle','hiking','basketball','football','piano','cook'],
-    ['often','every day','every week','once','twice','sometimes','always','usually','week','day','times'],
+    ['often','every day','every week','once','twice','sometimes','always','week','day','times'],
     ['at home','park','school','club','playground','indoors','outdoors','room','beach','field','centre','center'],
     ['with','friend','brother','sister','mum','dad','mother','father','family','parents','alone','together'],
     ['happy','love','enjoy','excited','proud','fun','relax','glad','feel','great','wonderful'],
@@ -2209,11 +2209,13 @@ function seedStat(n, total, i){
   var maxS=done*3; var stars=Math.max(0,Math.min(maxS,maxS-(h%3)));
   var xp=done*10+stars*10;
   var coins=xp+(h%6)*10;
-  var now=Date.now();
-  var _dt=new Date(now);
-  var monthStart=new Date(_dt.getFullYear(), _dt.getMonth(), 1).getTime();
-  var span=now-monthStart;
-  var t=new Date(monthStart + Math.floor(span*((i||0)/SEED_NAMES.length)) + (h%3600000)).toISOString();
+  var _now=new Date();
+  var _days=Math.max(1,_now.getDate());
+  var _dayOff=Math.floor((i||0)*_days/SEED_NAMES.length);
+  var _slot=(i||0)%6;
+  var _hour=9+_slot*2+(h%2);
+  var _min=h%60;
+  var t=new Date(_now.getFullYear(), _now.getMonth(), 1+_dayOff, _hour, _min, 0, 0).toISOString();
   return {n:n,done:done,stars:stars,xp:xp,coins:coins,t:t,streak:h%6};
 }
 function seedRows(){
@@ -2228,7 +2230,7 @@ function seedRows(){
 
 function seedRecords(){
   try{
-    if(localStorage.getItem('sw_seeded_v4_'+LEVELS.length)) return;
+    if(localStorage.getItem('sw_seeded_v5_'+LEVELS.length)) return;
     var total=LEVELS.length;
     for(var i=0;i<SEED_NAMES.length;i++){
       var st=seedStat(SEED_NAMES[i],total,i);
@@ -2237,7 +2239,7 @@ function seedRecords(){
     }
     saveJSON(LS_REC,records);
   }catch(e){}
-  try{ localStorage.setItem('sw_seeded_v4_'+LEVELS.length,'1'); }catch(e){}
+  try{ localStorage.setItem('sw_seeded_v5_'+LEVELS.length,'1'); }catch(e){}
 }
 
 async function openLeaderboard(){
