@@ -64,5 +64,56 @@ footer{text-align:center;color:var(--ink-soft);font-size:12px;margin-top:30px;li
   </div>
   <footer>每個遊戲都支援 <b>師生登入</b>、<b>自動儲存成績</b>、<b>錯題庫</b> 同 <b>家長報告</b>。</footer>
 </div>
+
+<script>
+(function(){
+  if(window.__swWidget) return; window.__swWidget=1;
+  var p=location.pathname, root='/', seg=p.split('/').filter(Boolean);
+  var mi=seg.indexOf('english-ed-game');
+  if(mi>=0) root='/'+seg.slice(0,mi+1).join('/')+'/';
+  var isFront = (p===root || p===root+'index.html');
+  var AI='https://billowing-moon-ffb6.keithng990323.workers.dev/api/chat';
+  var CONTACT='keithng990323@gmail.com';
+  var css=document.createElement('style');
+  css.textContent='.sw-fab{position:fixed;right:14px;z-index:9998;width:50px;height:50px;border-radius:50%;border:2px solid #fff;font-size:22px;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.3);display:grid;place-items:center;color:#fff;transition:transform .12s}.sw-fab:active{transform:scale(.92)}.sw-chat{background:linear-gradient(135deg,#0aa06e,#118ab2);bottom:14px}.sw-back{background:#64748b;bottom:72px}.sw-home{background:#f59e0b;bottom:130px}.sw-panel{position:fixed;right:14px;bottom:72px;z-index:9999;width:min(350px,calc(100vw - 28px));height:430px;background:#fff;border-radius:18px;box-shadow:0 14px 34px rgba(0,0,0,.3);display:none;flex-direction:column;overflow:hidden;font-family:inherit}.sw-panel.on{display:flex}.sw-head{background:linear-gradient(135deg,#0aa06e,#118ab2);color:#fff;padding:11px 14px;font-weight:800;display:flex;justify-content:space-between;align-items:center}.sw-msgs{flex:1;overflow-y:auto;padding:10px;background:#f7f3e8;display:flex;flex-direction:column}.sw-msg{margin:4px 0;max-width:86%;padding:8px 11px;border-radius:13px;font-size:13px;line-height:1.5;white-space:pre-wrap}.sw-msg.bot{background:#fff;border:1px solid #ece7da;align-self:flex-start}.sw-msg.user{background:#0aa06e;color:#fff;align-self:flex-end;margin-left:auto}.sw-quick{display:flex;flex-wrap:wrap;gap:5px;padding:5px 10px;background:#fff;border-top:1px solid #ece7da}.sw-quick button{background:#eaf7f0;border:1px solid #cfeede;color:#059669;border-radius:999px;font-size:11px;padding:4px 8px;cursor:pointer}.sw-inp{display:flex;border-top:1px solid #ece7da}.sw-inp input{flex:1;border:none;padding:11px;font-size:13px;outline:none;font-family:inherit}.sw-inp button{border:none;background:#0aa06e;color:#fff;padding:0 14px;font-weight:800;cursor:pointer}';
+  document.head.appendChild(css);
+  function mk(tag,cls,html,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(html)e.innerHTML=html;if(txt!=null)e.textContent=txt;return e;}
+  function fab(cls,label,fn){var b=mk('button','sw-fab '+cls,label);b.onclick=fn;document.body.appendChild(b);return b;}
+  if(!isFront){
+    fab('sw-home','H',function(){location.href=root;}).textContent='\ud83c\udfe0';
+    fab('sw-back','B',function(){ if(history.length>1) history.back(); else location.href=root; }).textContent='\u2190';
+  }
+  var panel=mk('div','sw-panel');
+  panel.innerHTML='<div class="sw-head"><span>\ud83e\udd16 \u5433Sir \u5ba2\u670d</span><button style="background:none;border:none;color:#fff;font-size:16px;cursor:pointer">\u2715</button></div><div class="sw-msgs"></div><div class="sw-quick"><button data-q="\u9ede\u6a23\u958b\u59cb\u73a9\uff1f">\u9ede\u6a23\u958b\u59cb\u73a9\uff1f</button><button data-q="\u8001\u5e2b\u5bc6\u78bc\u4fc2\u5486\uff1f">\u8001\u5e2b\u5bc6\u78bc\u4fc2\u5486\uff1f</button><button data-q="\u91d1\u5e63\uff0f\u9020\u578b\u9ede\u7528\uff1f">\u91d1\u5e63\uff0f\u9020\u578b\u9ede\u7528\uff1f</button><button data-q="\u6210\u7e3e\u9ede\u5132\u5b58\uff1f">\u6210\u7e3e\u9ede\u5132\u5b58\uff1f</button></div><div class="sw-inp"><input placeholder="\u6253\u5b57\u554f\u5622\u2026"><button>\u27a4</button></div>';
+  document.body.appendChild(panel);
+  var msgs=panel.querySelector('.sw-msgs');
+  var opened=false;
+  panel.querySelector('.sw-head button').onclick=function(){panel.classList.remove('on');};
+  fab('sw-chat','C',function(){ panel.classList.toggle('on'); if(!opened&&panel.classList.contains('on')){opened=true; addMsg('\u4f60\u597d\uff01\u6211\u4fc2\u5433Sir \u5605 AI \u52a9\u624b \ud83e\udd16 \u6709\u5486\u53ef\u4ee5\u5e6b\u4f60\uff1f','bot');} }).textContent='\ud83d\udcac';
+  function addMsg(t,w){var m=mk('div','sw-msg '+w,null,t);msgs.appendChild(m);msgs.scrollTop=9e9;}
+  var hist=[];
+  var FAQ=[
+    {k:['開始','start','玩','揀','年級','遊戲','點玩'],a:'揀 Primary \u6216 Secondary \u2192 揀年級遊戲 \u2192 輸入姓名開始。'},
+    {k:['密碼','teacher','登入','老師','家長'],a:'老師／家長密碼預設 teacher123（登入後可喺 ⚙️ 設定改）。'},
+    {k:['成績','儲存','save','進度','分數'],a:'成績會自動儲存喺部機＋雲端。'},
+    {k:['錯題','wrong'],a:'答錯 2 次提示就會入「錯題庫」，關卡完可重做。'},
+    {k:['報告','report','成績表'],a:'用老師密碼登入 \u2192 學生列表 \u2192 撳學生名睇詳細報告。'},
+    {k:['金幣','造型','avatar','商店','coin','skin'],a:'完成關卡賺金幣，撳地圖頂嘅角色 icon 就可以換造型。'},
+    {k:['排行榜','排名','leaderboard','比較'],a:'地圖頂有「\ud83c\udfc6 排行榜」掣，睇頭 10 名。'},
+    {k:['簽到','streak','連續'],a:'每日入嚟玩會加 streak，斷咗會重置。'},
+    {k:['boss','大魔王','魔王'],a:'完成晒所有關卡就可以打 Boss 大魔王。'},
+    {k:['email','聯絡','真人','搵你'],a:'可以 email '+CONTACT+'，我會親自回覆。'}
+  ];
+  function rule(t){var s=t.toLowerCase();for(var i=0;i<FAQ.length;i++){var ks=FAQ[i].k;for(var j=0;j<ks.length;j++){if(s.indexOf(ks[j].toLowerCase())>=0)return FAQ[i].a;}}return '我係自動助手，可以答常見問題。如果 AI 答唔到，可以 email '+CONTACT+'。';}
+  function ask(t){ if(!t)return; addMsg(t,'user'); var b=mk('div','sw-msg bot',null,'…'); msgs.appendChild(b); msgs.scrollTop=9e9;
+    fetch(AI,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:t,history:hist})}).then(function(r){return r.json();}).then(function(d){ var a=(d&&d.reply)||rule(t); if(/^(AI\s*錯誤|連接.*失敗|AI\s*未設定|抱歉，我暫時答唔到)/.test(a)){a+='\n\n\ud83d\udce7 如果好急，可以 email：'+CONTACT;} b.textContent=a; hist=hist.concat([{role:'user',content:t},{role:'assistant',content:a}]).slice(-8); msgs.scrollTop=9e9; }).catch(function(){ b.textContent=rule(t)+'\n\n\ud83d\udce7 如果好急，可以 email：'+CONTACT; });
+  }
+  panel.querySelector('.sw-inp button').onclick=function(){ var i=panel.querySelector('.sw-inp input'); var v=i.value.trim(); i.value=''; ask(v); };
+  panel.querySelector('.sw-inp input').onkeydown=function(e){ if(e.key==='Enter'){ var v=this.value.trim(); this.value=''; ask(v); } };
+  var qs=panel.querySelectorAll('.sw-quick button');
+  for(var qi=0;qi<qs.length;qi++){ (function(b){ b.onclick=function(){ ask(b.getAttribute('data-q')); }; })(qs[qi]); }
+})();
+</script>
+
 </body>
 </html>
