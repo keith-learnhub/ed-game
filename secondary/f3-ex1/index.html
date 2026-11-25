@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<meta name="site-build" content="v28-20261126-0320">
+<meta name="site-build" content="v29-20261126-0340">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0aa06e">
@@ -2211,8 +2211,12 @@ function seedStat(n, total, i){
   var maxS=done*3; var stars=Math.max(0,Math.min(maxS,maxS-(h%3)));
   var xp=done*10+stars*10;
   var coins=xp+(h%6)*10;
-  var minsAgo=(i||0)*61+(h%60)+3;
-  return {n:n,done:done,stars:stars,xp:xp,coins:coins,t:new Date(Date.now()-minsAgo*60000).toISOString(),streak:h%6};
+  var now=Date.now();
+  var _dt=new Date(now);
+  var monthStart=new Date(_dt.getFullYear(), _dt.getMonth(), 1).getTime();
+  var span=now-monthStart;
+  var t=new Date(monthStart + Math.floor(span*((i||0)/SEED_NAMES.length)) + (h%3600000)).toISOString();
+  return {n:n,done:done,stars:stars,xp:xp,coins:coins,t:t,streak:h%6};
 }
 function seedRows(){
   var total=(typeof LEVELS!=='undefined'?LEVELS.length:6);
@@ -2226,7 +2230,7 @@ function seedRows(){
 
 function seedRecords(){
   try{
-    if(localStorage.getItem('sw_seeded_v3_'+LEVELS.length)) return;
+    if(localStorage.getItem('sw_seeded_v4_'+LEVELS.length)) return;
     var total=LEVELS.length;
     for(var i=0;i<SEED_NAMES.length;i++){
       var st=seedStat(SEED_NAMES[i],total,i);
@@ -2235,7 +2239,7 @@ function seedRecords(){
     }
     saveJSON(LS_REC,records);
   }catch(e){}
-  try{ localStorage.setItem('sw_seeded_v3_'+LEVELS.length,'1'); }catch(e){}
+  try{ localStorage.setItem('sw_seeded_v4_'+LEVELS.length,'1'); }catch(e){}
 }
 
 async function openLeaderboard(){
