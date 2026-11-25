@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<meta name="site-build" content="v10-20261125-1925">
+<meta name="site-build" content="v13-20261125-2015">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0aa06e">
@@ -541,8 +541,8 @@ footer{text-align:center;color:var(--ink-soft);font-size:12px;margin-top:26px}
 <!-- ============ 小老師教路（冇心心時） ============ -->
 <div class="modal-bg" id="teachModal">
   <div class="modal">
-    <div style="font-size:44px">👩‍🏫</div>
-    <h3>冇心心喇？唔怕，小老師教你！</h3>
+    <img src="../../assets/wusir.jpg" alt="吳Sir" style="width:96px;height:96px;border-radius:50%;object-fit:cover;border:4px solid #10b981;box-shadow:0 8px 20px rgba(0,0,0,.25);margin:0 auto 6px;display:block">
+    <h3>👨‍🏫 吳Sir 老師教你！</h3>
     <p style="font-size:13px">睇完筆記，撳「繼續」就可以直接做落去，唔使重頭再做。</p>
     <div id="teachBody"></div>
     <button class="btn btn-primary btn-big" style="margin-top:14px" onclick="continueAfterTeach()">明白喇，繼續 ➜</button>
@@ -973,7 +973,7 @@ function renderPath(){
   /* 畢業測驗 */
   const finRec=(me.L&&me.L['final'])||null;
   const allDone=LEVELS.every((lv)=>me.L&&me.L[lv.id]&&me.L[lv.id].s>0);
-  html+='<div class="node'+(allDone?'':' locked')+'"><div class="bubble col-green" style="background:linear-gradient(135deg,#ff5e62,#c11f2e)" onclick="'+(allDone?'openFinal()':'toast(\'完成晒所有關卡先可以打大魔王！\')')+'"><span class="lv">👑</span>👨‍🏫<span class="stars">'+starStr(finRec?finRec.s:0)+'</span></div><div class="meta"><div class="t">👨‍🏫 吳Sir（大魔王）</div><div class="s">打敗吳Sir 大魔王攞 100 🪙！</div></div></div>';
+  html+='<div class="node'+(allDone?'':' locked')+'"><div class="bubble col-green" style="background:linear-gradient(135deg,#ff5e62,#c11f2e)" onclick="'+(allDone?'openFinal()':'toast(\'完成晒所有關卡先可以打大魔王！\')')+'"><span class="lv">👑</span>💩<span class="stars">'+starStr(finRec?finRec.s:0)+'</span></div><div class="meta"><div class="t">💩 屎王（大魔王）</div><div class="s">打敗屎王攞 100 🪙！</div></div></div>';
   wrap.innerHTML=html;
   document.getElementById('pathStars').textContent=me.stars||0;
   document.getElementById('pathStarsMax').textContent=(LEVELS.length+1)*3;
@@ -993,8 +993,8 @@ function openLevel(i){
 }
 function openFinal(){
   pendingLevel='final';
-  document.getElementById('levelIntroEmoji').textContent='👨‍🏫';
-  document.getElementById('levelIntroTitle').textContent='吳Sir（大魔王）';
+  document.getElementById('levelIntroEmoji').textContent='💩';
+  document.getElementById('levelIntroTitle').textContent='屎王（大魔王）';
   document.getElementById('levelIntroDesc').textContent='答啱扣大魔王血！贏咗攞 100 🪙 大獎！';
   const rec=(getMe().L&&getMe().L['final'])||null;
   document.getElementById('levelIntroStars').textContent=starStr(rec?rec.s:0);
@@ -2254,7 +2254,7 @@ function renderCombo(){ const el=document.getElementById('comboBadge'); if(!el)r
     {k:['金幣','造型','avatar','商店','coin','skin'],a:'完成關卡賺金幣，撳地圖頂嘅角色 icon 就可以換造型。'},
     {k:['排行榜','排名','leaderboard','比較'],a:'地圖頂有「\ud83c\udfc6 排行榜」掣，睇頭 10 名。'},
     {k:['簽到','streak','連續'],a:'每日入嚟玩會加 streak，斷咗會重置。'},
-    {k:['boss','大魔王','魔王'],a:'完成晒所有關卡就可以挑戰吳Sir 大魔王。'},
+    {k:['boss','大魔王','魔王'],a:'完成晒所有關卡就可以挑戰屎王。'},
     {k:['email','聯絡','真人','搵你'],a:'可以 email '+CONTACT+'，我會親自回覆。'}
   ];
   function rule(t){var s=t.toLowerCase();for(var i=0;i<FAQ.length;i++){var ks=FAQ[i].k;for(var j=0;j<ks.length;j++){if(s.indexOf(ks[j].toLowerCase())>=0)return FAQ[i].a;}}return '我係自動助手，可以答常見問題。如果 AI 答唔到，可以 email '+CONTACT+'。';}
@@ -2374,14 +2374,14 @@ function buyTool(id){
     var me=null; try{ me=getMe(); }catch(x){}
     var total=(typeof LEVELS!=='undefined')?LEVELS.length:8; var done=(me&&me.done)||0;
     var ch=[
-      '⭐ 屎屎王國 1-1：吳Sir 大魔王偷走咗島上嘅字！收集屎屎人，奪返佢哋！',
+      '⭐ 屎屎王國 1-1：💩 屎王偷走咗王國嘅字！👨‍🏫 吳Sir 老師會幫你！',
       '⭐ 屎屎王國 1-2：風車村嘅字詞散晒，用拼寫捉返佢哋！',
       '⭐ 屎屎王國 1-3：雲端吊橋有錯字蟲擋路，衝過去！',
-      '🏰 吳Sir 城堡：挑戰吳Sir 大魔王，奪返屎屎人！',
-      '🎉 恭喜！你打敗咗吳Sir 大魔王，成為屎屎王國英雄！'
+      '🏰 屎王城堡：挑戰 💩 屎王，奪返屎屎人！',
+      '🎉 恭喜！你打敗咗屎王，成為屎屎王國英雄！'
     ];
     var idx=Math.min(ch.length-1, Math.floor(done/Math.max(1,total)*ch.length));
-    el.textContent='📖 '+ch[idx]+'（進度 '+done+'/'+total+'）';
+    el.innerHTML='<img src="../../assets/wusir.jpg" style="width:26px;height:26px;border-radius:50%;vertical-align:middle;margin-right:6px;object-fit:cover;border:2px solid #f59e0b">📖 '+ch[idx]+'（進度 '+done+'/'+total+'）';
   }
   window.swStory=swStory;
 
@@ -2457,6 +2457,110 @@ function buyTool(id){
 })();
 </script>
 
-<div style="position:fixed;left:8px;top:8px;z-index:9999;background:#0f172a;color:#fff;font-size:10px;padding:3px 7px;border-radius:8px;opacity:.75;font-weight:700">v10-20261125-1925</div>
+<div style="position:fixed;left:8px;top:8px;z-index:9999;background:#0f172a;color:#fff;font-size:10px;padding:3px 7px;border-radius:8px;opacity:.75;font-weight:700">v13-20261125-2015</div>
+
+<style>
+.vis-big{font-size:72px;text-align:center;line-height:1;margin:4px 0 8px}
+.vis-flow{font-size:17px;font-weight:800;text-align:center;background:#eaf7f0;border-radius:16px;padding:14px 10px;line-height:1.9;color:#065f46}
+.vis-ans{font-size:17px;font-weight:800;text-align:center;margin:10px 0;color:#059669}
+.vis-ans b{font-size:22px}
+.vis-hintline{font-size:12px;color:#888;text-align:center;margin-top:6px}
+</style>
+<script>
+(function(){
+  var VIS={
+    greet:'👋 Hello!　🌞 Good morning!　🌙 Good night!',
+    intro:'🙋 This is…　🧑 I am…',
+    people:'👩‍🏫 teacher　🧑‍🎓 student　👮 police',
+    places:'🏫 library　🌳 park　🏥 hospital',
+    there:'❓ Is there…?　✅ There is…',
+    prescont:'🏃 is running　🎨 is drawing',
+    must:'✅ must　🚫 mustn\u2019t',
+    hobbies:'⚽ hobby　🏊 swimming',
+    link:'➕ and　➖ but　🔀 or',
+    because:'❓ Why? → 💡 Because…',
+    goodat:'⭐ good at　🏆 best at',
+    leisure:'🎣 fishing　🚴 cycling',
+    freq:'⏰ always → often → sometimes → never',
+    different:'🟢 same　🔵 different',
+    transport:'🚌 bus　🚕 taxi　🚶 on foot',
+    distance:'📏 How far?　⏱️ How long?',
+    directions:'⬅️ left　➡️ right　⬆️ straight',
+    quant:'📦 so many　💧 so much',
+    rel:'🧑 who　📦 which',
+    cond:'🌧️ If it rains → ☂️ we will stay',
+    jobs:'👨‍⚕️ doctor　👩‍🍳 chef',
+    pp:'✅ have / has + p.p.',
+    qw:'❓ What　Where　When　Who',
+    adjed:'😴 -ed　😮 -ing',
+    cond2:'💭 If I were you → I would…',
+    simile:'🦁 as brave as a lion',
+    phrasal:'🔗 look after　⬆️ give up',
+    passive:'🔄 be + p.p.',
+    tense:'📅 every day　🏃 now　⏪ yesterday',
+    prep:'📍 in　on　at',
+    perfect:'✅ have / has + p.p.',
+    relative:'🧑 who　📦 which　👪 whose',
+    gerund:'🎨 enjoy + -ing　🎯 decide + to',
+    compare:'🐜 small → 🐕 bigger → 🐘 biggest',
+    connect:'1️⃣ first → 2️⃣ next → 3️⃣ then → 🏁 finally',
+    quantity:'🥤 How much?　🍎 How many?',
+    active:'🔄 be + p.p.'
+  };
+  function lvOf(){ try{ return (typeof L!=='undefined'&&L&&L.id&&L.id!=='final')?LEVELS.filter(function(x){return x.id===L.id;})[0]:null; }catch(e){ return null; } }
+  function shortAns(step){
+    try{
+      if(step.type==='mcq') return '✅ <b>'+esc(step.q.opts[step.q.ans])+'</b>';
+      if(step.type==='fill') return '✅ <b>'+esc(step.q.ans)+'</b>';
+      if(step.type==='spell'||step.type==='typeword') return '✅ <b>'+esc(step.word)+'</b>';
+      if(step.type==='sort') return '👉 逐個字撳，再撳去啱嘅格';
+      if(step.type==='order') return '👉 睇次序：'+step.act.items.map(function(t,i){return (i+1)+'.'+esc(t);}).join(' ');
+      if(step.type==='read') return '👉 答案就喺文章入面';
+      if(step.type==='match') return '👉 左邊撳一個，右邊撳一個';
+    }catch(e){}
+    return '';
+  }
+  window.showTeachNote=function(){
+    try{
+      if(typeof L==='undefined'||!L) return;
+      var step=L.steps[L.si];
+      var lv=lvOf();
+      var infoAct=lv?lv.acts.filter(function(a){return a.type==='info';})[0]:null;
+      var rule=infoAct?infoAct.html:'';
+      var vis=lv?(VIS[lv.id]||''):'';
+      var emoji=lv?lv.emoji:'🎯';
+      var ex=shortAns(step);
+      document.getElementById('teachBody').innerHTML=
+        '<div class="vis-big">'+emoji+'</div>'
+        +(vis?'<div class="vis-flow">'+vis+'</div>':'')
+        +(ex?'<div class="vis-ans">'+ex+'</div>':'')
+        +(rule?'<div style="margin-top:10px"><button class="btn btn-ghost" onclick="var r=document.getElementById(\'teachRule\');r.style.display=(r.style.display===\'block\'?\'none\':\'block\')">📖 睇規則（可選）</button><div id="teachRule" class="rule-box" style="display:none;text-align:left;margin-top:8px">'+rule+'</div></div>':'');
+      L.helpUsed=true;
+      document.getElementById('teachModal').classList.add('show');
+    }catch(e){}
+  };
+  window.swTeachAnim=function(step, dur){
+    dur=dur||4000;
+    try{
+      var lv=lvOf();
+      var vis=lv?(VIS[lv.id]||''):'';
+      var emoji=lv?lv.emoji:'🎯';
+      var ex=shortAns(step);
+      if(document.querySelector('.sw-notice')) return;
+      var d=document.createElement('div'); d.className='sw-notice';
+      d.innerHTML='<div class="sw-notice-card"><div class="vis-big">'+emoji+'</div>'
+        +(vis?'<div class="vis-flow">'+vis+'</div>':'')
+        +(ex?'<div class="vis-ans">'+ex+'</div>':'')
+        +'<div class="sw-notice-bar"><i></i></div>'
+        +'<div class="sw-notice-tip">'+(dur/1000)+' 秒後自動繼續…</div>'
+        +'<button class="sw-notice-btn" onclick="swTeachClose()">知道了 ➜</button></div>';
+      document.body.appendChild(d);
+      var bar=d.querySelector('.sw-notice-bar i'); if(bar) bar.style.animation='swTeachBar '+dur+'ms linear forwards';
+      d._step=step; d._t=setTimeout(function(){ swTeachClose(); }, dur); window._swTeach=d;
+    }catch(x){ try{ autoNext(); }catch(y){} }
+  };
+})();
+</script>
+
 </body>
 </html>
