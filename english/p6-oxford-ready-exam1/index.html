@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<meta name="site-build" content="v16-20261125-2100">
+<meta name="site-build" content="v18-20261125-2120">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0aa06e">
@@ -538,7 +538,7 @@ footer{text-align:center;color:var(--ink-soft);font-size:12px;margin-top:26px}
   </div>
 </div>
 
-<!-- ============ 小老師教路（冇心心時） ============ -->
+<!-- ============ 吳Sir 教路（冇心心時） ============ -->
 <div class="modal-bg" id="teachModal">
   <div class="modal">
     <img src="../../assets/wusir.jpg" alt="吳Sir" style="width:96px;height:96px;border-radius:50%;object-fit:cover;border:4px solid #10b981;box-shadow:0 8px 20px rgba(0,0,0,.25);margin:0 auto 6px;display:block">
@@ -1422,7 +1422,7 @@ function trackWord(step,ok){
 }
 function loseHeart(){
   L.hearts--; renderHearts();
-  if(L.hearts<=0){ showFb('💔 冇心心喇，小老師教你！','no'); setTimeout(()=>showTeachNote(),700); return true; }
+  if(L.hearts<=0){ showFb('💔 冇心心喇，吳Sir 教你！','no'); setTimeout(()=>showTeachNote(),700); return true; }
   return false;
 }
 function markCorrect(){ L.correct++; L.combo=(L.combo||0)+1; renderCombo(); if(L.combo>=5 && L.combo%5===0){ const me=getMe(); const bonus=10; me.coins=(me.coins||0)+bonus; saveMe(me); toast('🔥 '+L.combo+' 連擊！額外 +'+bonus+' 金幣'); } trackSkill(L.steps[L.si].skill,true); trackWord(L.steps[L.si],true); sndCorrect(); starBurst(); showFb('✅ 啱！','ok'); document.getElementById('lessonCheck').classList.add('hidden'); autoNext(); }
@@ -1478,7 +1478,7 @@ function markWrong(advance,msg){
   if(n<2){ L.hinted[L.si]=n+1; showFb('💡 提示 '+(n+1)+'：'+stepHint(step,n+1),'no'); return; }
   recordWrong(step);
   L.hearts--; renderHearts();
-  showFb('❌ 試咗 2 次提示仲未啱，睇 AI 小老師教路！','no');
+  showFb('❌ 試咗 2 次提示仲未啱，睇 吳Sir 教路！','no');
   if(L.hearts<=0){ setTimeout(()=>showTeachNote(),700); return; }
   setTimeout(()=>{ if(typeof swTeachAnim==='function') swTeachAnim(step); else autoNext(); },700);
 }
@@ -1761,7 +1761,7 @@ function finishLesson(){
   const wrongList=(L.wrong||[]).slice();
   if(!redo) mergeWords();
   let stars=L.hearts;
-  if(L.helpUsed) stars=Math.min(stars,2); /* 用過小老師筆記最多 2 星 */
+  if(L.helpUsed) stars=Math.min(stars,2); /* 用過吳Sir筆記最多 2 星 */
   if(L.markBonus) stars=Math.min(3,stars+1); /* 標記正確：額外一顆獎勵星 */
   if(L.id==='writing' && typeof L.writingTotal==='number'){ stars=L.writingTotal>=9?3:(L.writingTotal>=7?2:(L.writingTotal>=5?1:0)); } /* 作文按試卷總分計星 */
   if(!redo) recLevel(id,pct,stars);
@@ -1848,7 +1848,7 @@ function retryLesson(){
   },600);
 }
 
-/* ---- 冇心心：小老師教路（唔使重頭做） ---- */
+/* ---- 冇心心：吳Sir 教路（唔使重頭做） ---- */
 function showTeachNote(){
   if(!L){ return; }
   const step=L.steps[L.si];
@@ -2356,7 +2356,7 @@ function buyTool(id){
       var ans=''; try{ if(step.type==='mcq') ans=step.q.opts[step.q.ans]; else if(step.type==='fill') ans=step.q.ans; else if(step.type==='spell'||step.type==='typeword') ans=step.word; else if(step.type==='match') ans='逐對配：左邊同右邊意思一樣'; else if(step.type==='sort'||step.type==='order') ans='跟規則分類／排序'; }catch(x){}
       if(document.querySelector('.sw-notice')) return;
       var d=document.createElement('div'); d.className='sw-notice';
-      d.innerHTML='<div class="sw-notice-card"><div class="sw-notice-title">💡 小老師提示</div><div class="sw-notice-rule">'+(rule||'睇清楚題目，諗吓文法規則。')+'</div><div class="sw-notice-ans">✅ 正確答案：<b>'+String(ans||'見上面規則').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</b></div><div class="sw-notice-bar"><i></i></div><div class="sw-notice-tip">'+(dur/1000)+' 秒後自動繼續…</div><button class="sw-notice-btn" onclick="swTeachClose()">知道了 ➜</button></div>';
+      d.innerHTML='<div class="sw-notice-card"><div class="sw-notice-title">💡 吳Sir 提示</div><div class="sw-notice-rule">'+(rule||'睇清楚題目，諗吓文法規則。')+'</div><div class="sw-notice-ans">✅ 正確答案：<b>'+String(ans||'見上面規則').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</b></div><div class="sw-notice-bar"><i></i></div><div class="sw-notice-tip">'+(dur/1000)+' 秒後自動繼續…</div><button class="sw-notice-btn" onclick="swTeachClose()">知道了 ➜</button></div>';
       document.body.appendChild(d);
       var bar=d.querySelector('.sw-notice-bar i'); if(bar) bar.style.animation='swTeachBar '+dur+'ms linear forwards';
       d._step=step; d._t=setTimeout(function(){ swTeachClose(); }, dur); window._swTeach=d;
@@ -2544,7 +2544,7 @@ function buyTool(id){
       var ex=shortAns(step);
       if(document.querySelector('.sw-notice')) return;
       var d=document.createElement('div'); d.className='sw-notice';
-      d.innerHTML='<div class="sw-notice-card"><div class="vis-big">'+emoji+'</div>'
+      d.innerHTML='<div class="sw-notice-card"><img src="../../assets/wusir.jpg" alt="吳Sir" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:3px solid #10b981;display:block;margin:0 auto 6px"><div style="font-weight:800;color:#059669;margin-bottom:6px">吳Sir 教你</div><div class="vis-big">'+emoji+'</div>'
         +(vis?'<div class="vis-flow">'+vis+'</div>':'')
         +(ex?'<div class="vis-ans">'+ex+'</div>':'')
         +'<div class="sw-notice-bar"><i></i></div>'
