@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
+<meta name="site-build" content="v9-20261125-1905">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0aa06e">
@@ -208,5 +209,6 @@ function closeReport(){ document.getElementById('reportModal').classList.add('hi
 function submitReport(){ const name=document.getElementById('repName').value.trim(); const game=document.getElementById('repGame').value; const text=document.getElementById('repText').value.trim(); if(!text){ alert('請輸入問題描述'); return; } const rec={name:name||'匿名',game:game,text:text,page:location.href,t:new Date().toISOString()}; try{ fetch(FB+'/feedback/reports.json',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(rec)}).then(()=>{ closeReport(); document.getElementById('repName').value=''; document.getElementById('repText').value=''; alert('✅ 已收到，多謝你嘅報告！'); }).catch(()=>{ alert('⚠️ 提交失敗，請檢查網絡後再試。'); }); }catch(e){ alert('⚠️ 提交失敗'); } }
 </script>
 
+<div style="position:fixed;left:8px;top:8px;z-index:9999;background:#0f172a;color:#fff;font-size:10px;padding:3px 7px;border-radius:8px;opacity:.75;font-weight:700">v9-20261125-1905</div>
 </body>
 </html>
