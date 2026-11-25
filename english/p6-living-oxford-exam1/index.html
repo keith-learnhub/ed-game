@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<meta name="site-build" content="v24-20261126-0130">
+<meta name="site-build" content="v25-20261126-0200">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0aa06e">
@@ -2134,6 +2134,7 @@ async function changeTeacherPw(){
 /* ===================== 初始化 ===================== */
 function loadMyView(){ renderPath(); renderWords(); renderReadingList(); renderMyScore(); }
 function init(){
+  seedRecords();
   document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
     const n=t.dataset.tab;
     if(n==='records'&&role!=='teacher'){ toast('只有老師可以睇全班成績'); return; }
@@ -2210,6 +2211,24 @@ function seedRows(){
     out.push({n:SEED_NAMES[i], stars:stars, coins:coins});
   }
   return out;
+}
+
+function seedRecords(){
+  try{
+    if(localStorage.getItem('sw_seeded_'+LEVELS.length)) return;
+    var total=LEVELS.length;
+    for(var i=0;i<SEED_NAMES.length;i++){
+      var n=SEED_NAMES[i];
+      if(records[n]) continue;
+      var h=seedHash(n+'_'+total);
+      var done=h%(total+1);
+      var stars=Math.min(done*3, (h>>>3)%(done*3+1));
+      var xp=stars*8+(h%20);
+      records[n]={n:n,xp:xp,stars:stars,done:done,coins:(h*13)%300+stars*5,t:new Date(Date.now()-((h%40)+1)*3600000).toISOString(),L:{},skills:{},wrongBank:[],writing:null,avatar:'🐱',streak:h%5};
+    }
+    saveJSON(LS_REC,records);
+  }catch(e){}
+  try{ localStorage.setItem('sw_seeded_'+LEVELS.length,'1'); }catch(e){}
 }
 
 async function openLeaderboard(){
