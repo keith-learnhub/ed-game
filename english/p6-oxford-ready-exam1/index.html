@@ -1211,7 +1211,7 @@ function mountReading(container, passage, onComplete, practice, onWrong){
   passage.paras.forEach((p,i)=>{ html+='<p class="para"><span class="pn">'+(i+1)+'</span>'+esc(p)+' <button class="speak" style="width:30px;height:30px;font-size:14px" onclick="speakPara('+i+')">🔊</button></p>'; });
   html+='</div><div class="reading-questions">';
   passage.qs.forEach((q,i)=>{
-    html+='<div class="q-card" id="rq'+i+'" onclick="annoSetQ('+i+')"><div class="qn">Q'+(i+1)+'. '+esc(q.q)+'</div>';
+    html+='<div class="q-card" id="rq'+i+'" onclick="annoSetQ('+i+')"><div class="qn">Q'+(i+1)+'. '+q.q+'</div>';
     if(q.type==='mc'){
       html+='<div>'+q.opts.map((o,j)=>'<button class="opt" id="ro'+i+'_'+j+'" onclick="readMc('+i+','+j+')">'+String.fromCharCode(65+j)+'. '+esc(o)+'</button>').join('')+'</div>';
     } else if(q.type==='mcm'){
@@ -1572,7 +1572,7 @@ function renderInfoStep(step,body){
 /* ---- mcq ---- */
 function renderMcqStep(step,body){
   const q=step.q;
-  let h='<div class="q-card"><div class="qn">'+esc(q.q)+'</div>';
+  let h='<div class="q-card"><div class="qn">'+q.q+'</div>';
   q.opts.forEach((o,j)=>{ h+='<button class="opt" onclick="mcqPick('+j+')">'+String.fromCharCode(65+j)+'. '+esc(o)+'</button>'; });
   h+='</div>';
   body.innerHTML=h;
@@ -1605,7 +1605,7 @@ function mcqPick(j){
 function renderFillStep(step,body){
   const q=step.q;
   const ph=q.cap?'打低答案（第一個字母要大楷）':'打低答案';
-  body.innerHTML='<div class="q-card"><div class="qn">'+esc(q.q)+'</div><input class="qinput" id="fillInput" placeholder="'+ph+'" autocomplete="off" autocapitalize="off" autocorrect="off"></div>';
+  body.innerHTML='<div class="q-card"><div class="qn">'+q.q+'</div><input class="qinput" id="fillInput" placeholder="'+ph+'" autocomplete="off" autocapitalize="off" autocorrect="off"></div>';
   setButtons('✅ 檢查',true);
   setTimeout(()=>{const e=document.getElementById('fillInput'); if(e)e.focus();},60);
 }
