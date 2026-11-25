@@ -351,17 +351,6 @@ footer{text-align:center;color:var(--ink-soft);font-size:12px;margin-top:26px}
 .combo-badge{display:none;font-weight:800;font-size:14px;color:#ff9f1c}
 .combo-badge.on{display:inline-block;animation:comboPop .3s}
 @keyframes comboPop{0%{transform:scale(1.4)}100%{transform:scale(1)}}
-
-/* ---- 簡單提示 notice（4 秒） ---- */
-.sw-notice{position:fixed;inset:0;z-index:12000;background:rgba(15,23,42,.4);display:grid;place-items:center;padding:16px}
-.sw-notice-card{background:#fff;border-radius:18px;max-width:460px;width:100%;padding:18px;text-align:center;box-shadow:0 16px 40px rgba(0,0,0,.3);border-top:6px solid #10b981}
-.sw-notice-title{font-weight:800;font-size:16px;color:#2b2d42;margin-bottom:8px}
-.sw-notice-rule{text-align:left;font-size:14px;line-height:1.6;background:#f7f3e8;border-radius:12px;padding:12px;margin:8px 0}
-.sw-notice-ans{font-size:15px;color:#059669;font-weight:800;margin:8px 0}
-.sw-notice-bar{height:8px;background:#ece7da;border-radius:999px;overflow:hidden;margin:10px 0}
-.sw-notice-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#10b981,#118ab2);animation:swTeachBar 4s linear forwards}
-.sw-notice-tip{font-size:11px;color:#888}
-.sw-notice-btn{margin-top:10px;border:none;background:#0aa06e;color:#fff;font-weight:800;border-radius:14px;padding:10px 20px;cursor:pointer;font-size:15px}
 </style>
 </head>
 <body>
@@ -2353,15 +2342,21 @@ function buyTool(id){
   window.swSetDur=function(ms){ try{ localStorage.setItem('sw_teach_dur',String(ms)); }catch(e){} var d=window._swTeach; if(d){ var st=d._step; swTeachClose(); swTeachAnim(st, ms); } };
   function confetti(n){ for(var i=0;i<n;i++){ (function(i){ setTimeout(function(){ var e=document.createElement('div'); e.className='sw-conf'; e.textContent=['🎉','✨','⭐','💫','🎊'][i%5]; e.style.left=(20+Math.random()*60)+'vw'; e.style.top=(35+Math.random()*30)+'vh'; document.body.appendChild(e); setTimeout(function(){ if(e.parentNode)e.parentNode.removeChild(e); },1200); }, i*40); })(i); } }
   window.swTeachAnim=function(step, dur){
-    dur=dur||4000;
+    dur=dur||swTeachDuration();
     try{
       var rule=''; try{ var lv=(typeof L!=='undefined'&&L&&L.id&&L.id!=='final')?LEVELS.filter(function(x){return x.id===L.id;})[0]:null; var ia=lv?lv.acts.filter(function(a){return a.type==='info';})[0]:null; rule=ia?ia.html:''; }catch(x){}
       var ans=''; try{ if(step.type==='mcq') ans=step.q.opts[step.q.ans]; else if(step.type==='fill') ans=step.q.ans; else if(step.type==='spell'||step.type==='typeword') ans=step.word; else if(step.type==='match') ans='逐對配：左邊同右邊意思一樣'; else if(step.type==='sort'||step.type==='order') ans='跟規則分類／排序'; }catch(x){}
-      if(document.querySelector('.sw-notice')) return;
-      var d=document.createElement('div'); d.className='sw-notice';
-      d.innerHTML='<div class="sw-notice-card"><div class="sw-notice-title">💡 小老師提示</div><div class="sw-notice-rule">'+(rule||'睇清楚題目，諗吓文法規則。')+'</div><div class="sw-notice-ans">✅ 正確答案：<b>'+String(ans||'見上面規則').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</b></div><div class="sw-notice-bar"><i></i></div><div class="sw-notice-tip">'+(dur/1000)+' 秒後自動繼續…</div><button class="sw-notice-btn" onclick="swTeachClose()">知道了 ➜</button></div>';
+      if(document.querySelector('.sw-teach')) return;
+      var sc=dur/10000;
+      var d=document.createElement('div'); d.className='sw-teach';
+      d.innerHTML='<div class="sw-teach-card"><div class="sw-stage"><span class="sw-fox">🦊</span><span class="sw-bubble">停一停！我教你！</span></div><div class="sw-title">🤖 AI 小老師</div><div class="sw-rule">'+(rule||'睇清楚題目，諗吓文法規則。')+'</div><div class="sw-ans">✅ 正確答案：<b>'+String(ans||'見上面規則').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</b></div><div class="sw-teach-bar"><i></i></div><div class="sw-tip">'+(dur/1000)+' 秒後自動繼續…</div><div class="sw-dur"><button data-ms="3000">⚡ 3 秒</button><button data-ms="10000">🎬 10 秒</button></div><button class="sw-btn" onclick="swTeachClose()">我明白了 ➜</button></div>';
       document.body.appendChild(d);
-      var bar=d.querySelector('.sw-notice-bar i'); if(bar) bar.style.animation='swTeachBar '+dur+'ms linear forwards';
+      var base={'.sw-fox':50,'.sw-bubble':1000,'.sw-title':1100,'.sw-rule':1400,'.sw-ans':2100,'.sw-btn':1800};
+      Object.keys(base).forEach(function(sel){ var el=d.querySelector(sel); if(el) el.style.animationDelay=(base[sel]*sc/1000)+'s'; });
+      var bar=d.querySelector('.sw-teach-bar i'); if(bar) bar.style.animation='swTeachBar '+dur+'ms linear forwards';
+      var btns=d.querySelectorAll('.sw-dur button');
+      for(var i=0;i<btns.length;i++){ (function(b){ var ms=parseInt(b.getAttribute('data-ms'),10); if(ms===dur)b.className='on'; b.onclick=function(){ window.swSetDur(ms); }; })(btns[i]); }
+      setTimeout(function(){ confetti(8); }, Math.max(200,2100*sc));
       d._step=step; d._t=setTimeout(function(){ swTeachClose(); }, dur); window._swTeach=d;
     }catch(x){ try{ autoNext(); }catch(y){} }
   };
