@@ -1,8 +1,10 @@
 <!DOCTYPE html>
+<!-- © 2026 德風教育，版權所有 All Rights Reserved，禁止複製／轉載／商用 -->
 <html lang="zh-Hant">
 <head>
-<meta name="site-build" content="v30-20261126-0400">
+<meta name="site-build" content="v36-20261126-2120">
 <meta charset="UTF-8">
+<meta name="copyright" content="© 2026 德風教育，版權所有 All Rights Reserved，禁止複製／轉載／商用">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0aa06e">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -879,11 +881,46 @@ async function cloudSavePw(hash){
     await cloudFetch(base+'/'+C.config+'/pw.json',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({h:hash})},8000);
   }catch(e){}
 }
+/* 合併兩份學生記錄：保留較好嘅進度（唔俾空記錄覆蓋好記錄） */
+function mergeRecord(a,b){
+  if(!a)return b||null; if(!b)return a;
+  var r={};
+  ['stars','xp','done','coins','streak','bestStreak','pieces'].forEach(function(k){ r[k]=Math.max(+(a[k]||0),+(b[k]||0)); });
+  r.n=a.n||b.n;
+  var La=a.L||{}, Lb=b.L||{}, L={};
+  Object.keys(La).forEach(function(k){ L[k]=La[k]; });
+  Object.keys(Lb).forEach(function(k){
+    var va=L[k], vb=Lb[k];
+    if(!va){ L[k]=vb; return; }
+    L[k]={s:Math.max(+(va.s||0),+(vb.s||0)), p:Math.max(+(va.p||0),+(vb.p||0)), t:((vb.t||'')>(va.t||'')?vb:va).t};
+    if(va.hidden||vb.hidden)L[k].hidden=true;
+  });
+  r.L=L;
+  var Sa=a.skills||{}, Sb=b.skills||{}, S={};
+  Object.keys(Sa).forEach(function(k){ S[k]=Sa[k]; });
+  Object.keys(Sb).forEach(function(k){ if(!S[k]){S[k]=Sb[k];} else { S[k]={c:Math.max(+(S[k].c||0),+(Sb[k].c||0)), t:Math.max(+(S[k].t||0),+(Sb[k].t||0))}; } });
+  r.skills=S;
+  r.avatar=a.avatar||b.avatar||'🐱';
+  r.lastDay=((b.lastDay||'')>(a.lastDay||'')?b:a).lastDay||'';
+  r.m=(((b.m&&b.m.lvl||0)>(a.m&&a.m.lvl||0))?b.m:(a.m||b.m||{d:'',lvl:0,coin:0,r:[0,0,0]}));
+  r.writing=a.writing||b.writing||null;
+  r.wrongBank=((a.wrongBank||[]).length>=(b.wrongBank||[]).length)?(a.wrongBank||[]):(b.wrongBank||[]);
+  if(a.boost2x||b.boost2x)r.boost2x=true;
+  r.pendingCraft=Math.max(+(a.pendingCraft||0),+(b.pendingCraft||0));
+  r.t=((b.t||'')>(a.t||'')?b:a).t||'';
+  return r;
+}
+
 async function cloudSubmitStudent(rec){
   const base=getCloudUrl(); if(!base)return;
   const key=encodeURIComponent(rec.n);
   try{
-    await cloudFetch(base+'/'+C.students+'/'+key+'.json',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(rec)},8000);
+    var merged=rec;
+    try{
+      var g=await cloudFetch(base+'/'+C.students+'/'+key+'.json?ts='+Date.now(),null,8000);
+      if(g&&g.ok){ var old=await g.json(); if(old&&typeof old==='object'&&('n' in old)) merged=mergeRecord(old, rec); }
+    }catch(e){}
+    await cloudFetch(base+'/'+C.students+'/'+key+'.json',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(merged)},8000);
   }catch(e){}
   try{
     await cloudFetch(base+'/'+C.audit+'/'+key+'.json',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({logAt:new Date().toISOString()},rec))},8000);
@@ -2070,8 +2107,7 @@ function mergeCloud(cloud){
   Object.keys(cloud).forEach(k=>{
     const v=cloud[k];
     if(v&&typeof v==='object'&&('n' in v)){
-      const local=records[k];
-      if(!local || new Date(v.t||0)>new Date(local.t||0)) records[k]=v;
+      records[k]=mergeRecord(records[k], v);
     }
   });
   saveJSON(LS_REC,records);
