@@ -2,7 +2,7 @@
 <!-- © 2026 德風教育，版權所有 All Rights Reserved，禁止複製／轉載／商用 -->
 <html lang="zh-Hant">
 <head>
-<meta name="site-build" content="v36-20261126-2120">
+<meta name="site-build" content="v43-20261126-2300">
 <meta charset="UTF-8">
 <meta name="copyright" content="© 2026 德風教育，版權所有 All Rights Reserved，禁止複製／轉載／商用">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -538,7 +538,7 @@ footer{text-align:center;color:var(--ink-soft);font-size:12px;margin-top:26px}
       <button class="btn btn-primary btn-big" onclick="confirmTeacher()">進入老師模式 →</button>
     </div>
     <div class="feedback" id="gateFb"></div>
-    <button class="btn btn-ghost" style="font-size:13px;margin-top:8px" onclick="backToRole()">← 返回</button>
+    <button class="btn btn-ghost" style="font-size:13px;margin-top:8px" onclick="goBack()">← 返回</button>
   </div>
 </div>
 
@@ -964,13 +964,34 @@ function recLevel(levelId,pct,starsParam){
 /* ---------- 登入 / 權限 ---------- */
 function showStudentGate(){sndClick();document.getElementById('roleStudent').classList.add('sel');document.getElementById('roleTeacher').classList.remove('sel');document.getElementById('gateStudent').classList.remove('hidden');document.getElementById('gateTeacher').classList.add('hidden');document.getElementById('gateFb').textContent='';document.getElementById('gateFb').className='feedback';}
 function showTeacherGate(){sndClick();document.getElementById('roleTeacher').classList.add('sel');document.getElementById('roleStudent').classList.remove('sel');document.getElementById('gateTeacher').classList.remove('hidden');document.getElementById('gateStudent').classList.add('hidden');document.getElementById('gateFb').textContent='';document.getElementById('gateFb').className='feedback';setTimeout(()=>document.getElementById('teacherPwInput').focus(),60);}
+
+/* 返回：表單開住 → 返角色選擇；已喺角色選擇 → 返遊戲列表 */
+function goBack(){
+  var gs=document.getElementById('gateStudent'), gt=document.getElementById('gateTeacher');
+  var anyOpen=(gs&&!gs.classList.contains('hidden'))||(gt&&!gt.classList.contains('hidden'));
+  if(anyOpen){ backToRole(); return; }
+  sndClick();
+  try{
+    if(document.referrer && history.length>1 && document.referrer.indexOf(location.host)>=0){ history.back(); }
+    else { location.href='../index.html'; }
+  }catch(e){ location.href='../index.html'; }
+}
+
 function backToRole(){sndClick();document.getElementById('gateStudent').classList.add('hidden');document.getElementById('gateTeacher').classList.add('hidden');document.getElementById('roleStudent').classList.remove('sel');document.getElementById('roleTeacher').classList.remove('sel');document.getElementById('gateFb').textContent='';}
+/* 名字對照：同一學生嘅唔同串法 → 統一 */
+const NAME_ALIAS={'tselok':'LamTszlok','tszlok':'LamTszlok','lamtszlok':'LamTszlok','tselokl':'LamTszlok'};
+function canonicalName(n){
+  const raw=String(n||'').trim();
+  const k=raw.toLowerCase().replace(/\s+/g,'');
+  return NAME_ALIAS[k]||raw;
+}
+
 function confirmName(){
   const n=document.getElementById('nameInput').value.trim();
   if(!n){document.getElementById('gateFb').textContent='請輸入姓名';document.getElementById('gateFb').className='feedback no';return;}
   sndClick();
-  role='student'; currentName=n;
-  localStorage.setItem(LS_STU,n);
+  role='student'; currentName=canonicalName(n);
+  localStorage.setItem(LS_STU,currentName);
   enterApp();
 }
 async function confirmTeacher(){
@@ -1030,8 +1051,9 @@ function closeModal(id){ document.getElementById(id).classList.remove('show'); }
 let pendingLevel=null;
 function levelUnlocked(i){
   if(i===0)return true;
-  const prev=LEVELS[i-1];
   const me=getMe();
+  if((me.done||0)>=i) return true; /* 已完成關卡總數 >= i 就解鎖（唔怕內容改版） */
+  const prev=LEVELS[i-1];
   return !!(me.L&&me.L[prev.id]&&me.L[prev.id].s>0);
 }
 function starStr(s){ s=s||0; return '⭐'.repeat(s)+'☆'.repeat(3-s); }
@@ -1179,7 +1201,7 @@ function spellFillPool(i){ sndClick(); const k=curSpell.filled.indexOf(null); if
 function spellUnfill(j){ sndClick(); if(curSpell.filled[j]){ curSpell.pool.push(curSpell.filled[j]); curSpell.filled[j]=null; } spellRender(spellContainer()); }
 function spellBuiltAnswer(){
   if(curSpell.mode==='unscramble') return curSpell.picked.map(i=>curSpell.letters[i]).join('');
-  if(curSpell.mode==='fillgap') return curSpell.filled.join('');
+  if(curSpell.mode==='fillgap'){ const chars=(curSpell.chars||[]).slice(); (curSpell.gapIdx||[]).forEach((k,i)=>{ chars[k]=curSpell.filled[i]||''; }); return chars.join(''); }
   return (document.getElementById('spellTypeInput')||{}).value||'';
 }
 function spellCheckNow(){
@@ -1468,6 +1490,28 @@ function buildSteps(acts,levelId){
   return steps;
 }
 
+/* ---- A+B：每答一題自動儲存＋再入去續做 ---- */
+const LS_LESSON = LS_REC.replace('records','lesson');
+function saveLessonState(){
+  if(!L) return;
+  try{
+    localStorage.setItem(LS_LESSON, JSON.stringify({
+      id:L.id, si:L.si, correct:L.correct||0, hearts:L.hearts,
+      hinted:L.hinted||{}, wrong:L.wrong||[], words:L.words||{good:{},bad:{}},
+      softRetry:L.softRetry, ts:Date.now()
+    }));
+  }catch(e){}
+}
+function loadLessonState(id){
+  try{
+    const d=JSON.parse(localStorage.getItem(LS_LESSON)||'null');
+    if(!d||d.id!==id) return null;
+    if(Date.now()-(d.ts||0)>7*86400000) return null;
+    return d;
+  }catch(e){ return null; }
+}
+function clearLessonState(){ try{ localStorage.removeItem(LS_LESSON); }catch(e){} }
+
 function startLevel(){
   closeModal('levelIntroModal');
   if(pendingLevel==='final'){
@@ -1477,10 +1521,22 @@ function startLevel(){
     L={id:lv.id,steps:buildSteps(lv.acts,lv.id),si:0,correct:0,hearts:3,helpUsed:false,markBonus:false,hinted:{},wrong:[],words:{good:{},bad:{}}};
   }
   L.total=L.steps.reduce((s,x)=>s+(x.scoredItems||0),0);
+  /* A+B：續做上次進度 */
+  let _resumed=false;
+  try{
+    const _sv=loadLessonState(L.id);
+    if(_sv && _sv.si>0 && _sv.si<L.steps.length){
+      L.si=_sv.si; L.correct=_sv.correct||0;
+      L.hearts=Math.max(0,Math.min(3, _sv.hearts==null?3:_sv.hearts));
+      L.hinted=_sv.hinted||{}; L.wrong=_sv.wrong||[]; L.words=_sv.words||L.words;
+      L.softRetry=_sv.softRetry; _resumed=true;
+    }
+  }catch(e){}
   document.getElementById('lessonModal').classList.add('show');
   renderStep();
+  if(_resumed) toast('▶️ 續做上次進度（第 '+(L.si+1)+' 題）');
 }
-function quitLesson(){ sndClick(); document.getElementById('lessonModal').classList.remove('show'); L=null; }
+function quitLesson(){ sndClick(); try{saveLessonState();}catch(e){} document.getElementById('lessonModal').classList.remove('show'); L=null; }
 
 function renderHearts(){
   const el=document.getElementById('lessonHearts');
@@ -1593,6 +1649,7 @@ function renderStep(){
   else if(step.type==='order') renderOrderStep(step,body);
   else if(step.type==='read') renderReadStep(step,body);
   else if(step.type==='writing') renderWritingStep(step,body);
+  saveLessonState();
 }
 
 /* ---- learn / info ---- */
@@ -1837,6 +1894,7 @@ function mergeWords(){
   Object.keys(L.words.good).forEach(w=>{ if(me.words.bad.indexOf(w)<0 && me.words.good.indexOf(w)<0)me.words.good.push(w); });
 }
 function finishLesson(){
+  try{clearLessonState();}catch(e){}
   const pct=L.total?Math.round(L.correct/L.total*100):100;
   const id=L.id, redo=!!L.redo;
   const wrongList=(L.wrong||[]).slice();
@@ -2178,7 +2236,7 @@ function init(){
   document.getElementById('teacherPwInput').addEventListener('keydown',e=>{ if(e.key==='Enter')confirmTeacher(); });
   document.getElementById('nameInput').addEventListener('keydown',e=>{ if(e.key==='Enter')confirmName(); });
   const savedName=localStorage.getItem(LS_STU);
-  if(savedName){ role='student'; currentName=savedName; enterApp(); }
+  if(savedName){ role='student'; currentName=canonicalName(savedName); enterApp(); }
   else { document.getElementById('nameModal').classList.add('show'); }
   cloudLoadPw();
 }
@@ -2305,6 +2363,7 @@ function renderMatchStep(step,body){
   h+='<div class="match-col">'+right.map((x,j)=>'<button class="match-btn" id="mr'+j+'" onclick="matchTapR('+j+')">'+esc(x.t)+'</button>').join('')+'</div>';
   h+='</div>';
   body.innerHTML=h;
+  setButtons('✅ 檢查',true);
 }
 function matchTapL(i){ _match.selL=i; document.querySelectorAll('.match-col:first-child .match-btn').forEach((b,k)=>b.classList.toggle('sel',k===i)); sndClick(); }
 function matchTapR(j){
@@ -2348,7 +2407,7 @@ function renderCombo(){ const el=document.getElementById('comboBadge'); if(!el)r
   if(mi>=0) root='/'+seg.slice(0,mi+1).join('/')+'/';
   var isFront = (p===root || p===root+'index.html');
   var AI='https://billowing-moon-ffb6.keithng990323.workers.dev/api/chat';
-  var CONTACT='keithng990323@gmail.com';
+  var CONTACT='keithng990323@gmail.com'; var WA='91224358'; var WX='keithng588658';
   var css=document.createElement('style');
   css.textContent='.sw-fab{position:fixed;right:14px;z-index:9998;width:50px;height:50px;border-radius:50%;border:2px solid #fff;font-size:22px;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.3);display:grid;place-items:center;color:#fff;transition:transform .12s}.sw-fab:active{transform:scale(.92)}.sw-chat{background:linear-gradient(135deg,#0aa06e,#118ab2);bottom:14px}.sw-back{background:#64748b;bottom:72px}.sw-home{background:#f59e0b;bottom:130px}.sw-panel{position:fixed;right:14px;bottom:72px;z-index:9999;width:min(350px,calc(100vw - 28px));height:430px;background:#fff;border-radius:18px;box-shadow:0 14px 34px rgba(0,0,0,.3);display:none;flex-direction:column;overflow:hidden;font-family:inherit}.sw-panel.on{display:flex}.sw-head{background:linear-gradient(135deg,#0aa06e,#118ab2);color:#fff;padding:11px 14px;font-weight:800;display:flex;justify-content:space-between;align-items:center}.sw-msgs{flex:1;overflow-y:auto;padding:10px;background:#f7f3e8;display:flex;flex-direction:column}.sw-msg{margin:4px 0;max-width:86%;padding:8px 11px;border-radius:13px;font-size:13px;line-height:1.5;white-space:pre-wrap}.sw-msg.bot{background:#fff;border:1px solid #ece7da;align-self:flex-start}.sw-msg.user{background:#0aa06e;color:#fff;align-self:flex-end;margin-left:auto}.sw-quick{display:flex;flex-wrap:wrap;gap:5px;padding:5px 10px;background:#fff;border-top:1px solid #ece7da}.sw-quick button{background:#eaf7f0;border:1px solid #cfeede;color:#059669;border-radius:999px;font-size:11px;padding:4px 8px;cursor:pointer}.sw-inp{display:flex;border-top:1px solid #ece7da}.sw-inp input{flex:1;border:none;padding:11px;font-size:13px;outline:none;font-family:inherit}.sw-inp button{border:none;background:#0aa06e;color:#fff;padding:0 14px;font-weight:800;cursor:pointer}';
   document.head.appendChild(css);
@@ -2377,11 +2436,11 @@ function renderCombo(){ const el=document.getElementById('comboBadge'); if(!el)r
     {k:['排行榜','排名','leaderboard','比較'],a:'地圖頂有「\ud83c\udfc6 排行榜」掣，睇頭 10 名。'},
     {k:['簽到','streak','連續'],a:'每日入嚟玩會加 streak，斷咗會重置。'},
     {k:['boss','大魔王','魔王'],a:'完成晒所有關卡就可以挑戰屎王。'},
-    {k:['email','聯絡','真人','搵你'],a:'可以 email '+CONTACT+'，我會親自回覆。'}
+    {k:['email','whatsapp','wechat','微信','聯絡','真人','搵你'],a:'可以 WhatsApp 91224358 或 WeChat（微訊）keithng588658，或者 email '+CONTACT+'，我會親自回覆。'}
   ];
-  function rule(t){var s=t.toLowerCase();for(var i=0;i<FAQ.length;i++){var ks=FAQ[i].k;for(var j=0;j<ks.length;j++){if(s.indexOf(ks[j].toLowerCase())>=0)return FAQ[i].a;}}return '我係自動助手，可以答常見問題。如果 AI 答唔到，可以 email '+CONTACT+'。';}
+  function rule(t){var s=t.toLowerCase();for(var i=0;i<FAQ.length;i++){var ks=FAQ[i].k;for(var j=0;j<ks.length;j++){if(s.indexOf(ks[j].toLowerCase())>=0)return FAQ[i].a;}}return '我係自動助手，可以答常見問題。如果 AI 答唔到，可以 WhatsApp 91224358 或 WeChat（微訊）keithng588658，或者 email '+CONTACT+'。';}
   function ask(t){ if(!t)return; addMsg(t,'user'); var b=mk('div','sw-msg bot',null,'…'); msgs.appendChild(b); msgs.scrollTop=9e9;
-    fetch(AI,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:t,history:hist})}).then(function(r){return r.json();}).then(function(d){ var a=(d&&d.reply)||rule(t); if(/^(AI\s*錯誤|連接.*失敗|AI\s*未設定|抱歉，我暫時答唔到)/.test(a)){a+='\n\n\ud83d\udce7 如果好急，可以 email：'+CONTACT;} b.textContent=a; hist=hist.concat([{role:'user',content:t},{role:'assistant',content:a}]).slice(-8); msgs.scrollTop=9e9; }).catch(function(){ b.textContent=rule(t)+'\n\n\ud83d\udce7 如果好急，可以 email：'+CONTACT; });
+    fetch(AI,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:t,history:hist})}).then(function(r){return r.json();}).then(function(d){ var a=(d&&d.reply)||rule(t); if(/^(AI\s*錯誤|連接.*失敗|AI\s*未設定|抱歉，我暫時答唔到)/.test(a)){a+='\n\n\ud83d\udcf1 如果好急，可以 WhatsApp 91224358 或 WeChat（微訊）keithng588658';} b.textContent=a; hist=hist.concat([{role:'user',content:t},{role:'assistant',content:a}]).slice(-8); msgs.scrollTop=9e9; }).catch(function(){ b.textContent=rule(t)+'\n\n\ud83d\udcf1 如果好急，可以 WhatsApp 91224358 或 WeChat（微訊）keithng588658'; });
   }
   panel.querySelector('.sw-inp button').onclick=function(){ var i=panel.querySelector('.sw-inp input'); var v=i.value.trim(); i.value=''; ask(v); };
   panel.querySelector('.sw-inp input').onkeydown=function(e){ if(e.key==='Enter'){ var v=this.value.trim(); this.value=''; ask(v); } };

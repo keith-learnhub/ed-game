@@ -171,6 +171,8 @@ function toggleMusic(){ ac(); if(musicOn){ stopMusic(); document.getElementById(
 /* ---- AI 客服 + 報告 ---- */
 const FB='https://p4englishe103-default-rtdb.firebaseio.com';
 const CONTACT_EMAIL='keithng990323@gmail.com';
+const CONTACT_WA='91224358';
+const CONTACT_WX='keithng588658';
 const FAQ=[
  {k:['開始','start','玩','begin','年級','遊戲'],a:'步驟：揀 Primary（小學）或 Secondary（中學）→ 揀年級遊戲 → 輸入姓名開始闖關。'},
  {k:['密碼','teacher','login','登入','老師','家長'],a:'老師／家長密碼預設係 teacher123（登入後可喺 ⚙️ 設定更改）。'},
@@ -180,7 +182,7 @@ const FAQ=[
  {k:['手機','iphone','android','app','主畫面','安裝'],a:'iPhone：分享 → 加入主畫面；Android：選單 → 加到主螢幕，就會似 App 咁用。'},
 ];
 let chatOpened=false;
-function botReply(t){ const s=t.toLowerCase(); for(const f of FAQ){ if(f.k.some(k=>s.includes(k.toLowerCase()))) return f.a; } return '我係自動助手 🤖，可以答常見問題。如果 AI 答唔到，你可以 email 我：'+CONTACT_EMAIL+'，我會親自回覆你。'; }
+function botReply(t){ const s=t.toLowerCase(); for(const f of FAQ){ if(f.k.some(k=>s.includes(k.toLowerCase()))) return f.a; } return '我係自動助手 🤖，可以答常見問題。如果 AI 答唔到，可以 WhatsApp 91224358 或 WeChat（微訊）keithng588658，或者 email keithng990323@gmail.com，我會親自回覆你。'; }
 function addMsg(txt,who){ const m=document.createElement('div'); m.className='msg '+who; m.textContent=txt; document.getElementById('chatMsgs').appendChild(m); document.getElementById('chatMsgs').scrollTop=9e9; return m; }
 function toggleChat(){ const p=document.getElementById('chatPanel'); p.style.display=(p.style.display==='none')?'flex':'none'; if(!chatOpened){ chatOpened=true; setTimeout(()=>addMsg('你好！我係吳Sir 嘅 AI 助手 🤖 有咩可以幫你？','bot'),120); } }
 const AI_WORKER_URL='https://billowing-moon-ffb6.keithng990323.workers.dev/api/chat'; /* 填上你嘅 Cloudflare Worker URL，例如 'https://xxx.workers.dev/api/chat'（留空＝用規則式助手） */
@@ -198,7 +200,7 @@ async function reply(t){
   const a=await aiReply(t);
   let ans=a||botReply(t);
   if(/^(AI\s*錯誤|連接.*失敗|AI\s*未設定|抱歉，我暫時答唔到)/.test(ans)){
-    ans+='\n\n📧 如果好急，可以 email 我：'+CONTACT_EMAIL+'，我會親自回覆你。';
+    ans+='\n\n📱 如果好急，可以 WhatsApp 91224358 或 WeChat（微訊）keithng588658，或者 email keithng990323@gmail.com，我會親自回覆你。';
   }
   addMsg(ans,'bot'); saveChat(ans,'bot');
 }
